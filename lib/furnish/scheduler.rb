@@ -1,4 +1,5 @@
 require 'timeout'
+require 'furnish/vm'
 
 module Furnish
   #
@@ -44,7 +45,7 @@ module Furnish
       @working            = { }
       @waiters            = Palsy::Set.new('vm_scheduler', 'waiters')
       @queue              = Queue.new
-      @vm                 = VM.new
+      @vm                 = Furnish::VM.new
       @debug_level        = 2
     end
 
