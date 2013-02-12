@@ -3,7 +3,7 @@ require 'logger'
 module Furnish
   class Logger
     attr_accessor :debug_level
-    attr_reader :io
+    attr_reader   :io
 
     def initialize(logger_io=$stderr, debug_level=0)
       @io = logger_io
