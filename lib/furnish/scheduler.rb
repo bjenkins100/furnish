@@ -13,13 +13,6 @@ module Furnish
 
     ##
     #
-    # set the debug level
-    #
-
-    attr_accessor :debug_level
-
-    ##
-    #
     # Turn serial mode on (off by default). This forces the scheduler to execute
     # every provision in order, even if it could handle multiple provisions at
     # the same time.
@@ -47,11 +40,10 @@ module Furnish
       @waiters            = Palsy::Set.new('vm_scheduler', 'waiters')
       @queue              = Queue.new
       @vm                 = Furnish::VM.new
-      @debug_level        = 2
     end
 
-    def if_debug(level=1)
-      yield if level >= @debug_level
+    def if_debug(*args, &block)
+      Furnish.logger.if_debug(*args, &block)
     end
 
     #
@@ -255,7 +247,7 @@ module Furnish
         @waiters.each do |group_name|
           if (solved.to_set & vm_dependencies[group_name]).to_a == vm_dependencies[group_name]
             if_debug do
-              $stderr.puts "Provisioning #{group_name}"
+              puts "Provisioning #{group_name}"
             end
 
             provisioner = vm_groups[group_name]
@@ -312,7 +304,7 @@ module Furnish
 
       if_debug do
         if dependent_items.length > 0
-          $stderr.puts "Trying to terminate #{group_name}, found #{dependent_items.inspect} depending on it"
+          puts "Trying to terminate #{group_name}, found #{dependent_items.inspect} depending on it"
         end
       end
 
@@ -343,14 +335,14 @@ module Furnish
       # something we never scheduled. Just ignore that.
       if provisioner and ((solved.to_set + vm_working.to_set).include?(group_name) or @force_deprovision)
         if_debug do
-          $stderr.puts "Attempting to deprovision group #{group_name}"
+          puts "Attempting to deprovision group #{group_name}"
         end
 
         perform_deprovision = lambda do |this_prov|
           result = this_prov.shutdown
           unless result
             if_debug do
-              $stderr.puts "Could not deprovision group #{group_name}."
+              puts "Could not deprovision group #{group_name}."
             end
           end
           result
@@ -362,8 +354,8 @@ module Furnish
               perform_deprovision.call(this_prov)
             rescue Exception => e
               if_debug do
-                $stderr.puts "Deprovision #{this_prov.class.name}/#{group_name} had errors:"
-                $stderr.puts "#{e.message}"
+                puts "Deprovision #{this_prov.class.name}/#{group_name} had errors:"
+                puts "#{e.message}"
               end
             end
           else
