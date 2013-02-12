@@ -3,6 +3,7 @@ require 'logger'
 module Furnish
   class Logger
     attr_accessor :debug_level
+    attr_reader :io
 
     def initialize(logger_io=$stderr, debug_level=0)
       raise ArgumentError, "logger device must be a kind of IO" unless @io.kind_of?(IO)
@@ -20,8 +21,8 @@ module Furnish
     end
 
     def method_missing(sym, *args)
-      raise NoMethodError unless @io.respond_to?(sym)
-      @io.__send__(sym, *args)
+      raise NoMethodError unless io.respond_to?(sym)
+      io.__send__(sym, *args)
     end
   end
 end
