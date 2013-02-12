@@ -12,7 +12,7 @@ module Furnish
     end
 
     def if_debug(level=1, else_block=nil, &block)
-      if level >= debug_level and block
+      if debug_level >= level and block
         instance_eval(&block)
       elsif else_block
         instance_eval(&else_block)
