@@ -23,6 +23,43 @@ class TestLogger < Furnish::TestCase
     assert_equal("ohai\n", read_logfile)
   end
 
+  def test_if_debug
+    assert_equal(0, @logger.debug_level, "debug level is 0")
+    @logger.if_debug do
+      puts "foo"
+    end
+
+    assert_empty(read_logfile, "debug level is zero and if_debug defaults at 1")
+
+    @logger.debug_level = 1
+    @logger.if_debug do
+      puts "foo"
+    end
+
+    assert_equal("foo\n", read_logfile, "debug level is 1")
+
+    @logger.if_debug(2) do
+      puts "bar"
+    end
+
+    assert_equal("foo\n", read_logfile, "debug level is 1 and if_debug is 2")
+
+    else_block = proc { puts "quux" }
+
+    @logger.if_debug(2, else_block) do
+      puts "should_not_get_here"
+    end
+
+    assert_equal("foo\nquux\n", read_logfile, "debug level is 1 and else block triggered")
+
+    @logger.debug_level = 2
+    @logger.if_debug(1) do
+      puts "level2"
+    end
+
+    assert_equal("foo\nquux\nlevel2\n", read_logfile, "debug level is 2 and if_debug checking for 1")
+  end
+
   def teardown
     @logger.close
     @logger_file.unlink
