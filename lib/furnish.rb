@@ -7,8 +7,12 @@ module Furnish
   end
 
   def self.logger(io=$stderr, debug_level=0)
+    return @logger if @logger
     @logger ||= Furnish::Logger.new(io, debug_level)
-    return @logger
+  end
+
+  def self.logger=(logger)
+    @logger = logger
   end
 
   def self.shutdown
