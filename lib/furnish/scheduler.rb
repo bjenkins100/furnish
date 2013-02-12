@@ -23,13 +23,8 @@ module Furnish
     #
     # Ignore exceptions while deprovisioning. Default is false.
     #
-
     attr_accessor :force_deprovision
 
-    #
-    # Constructor. If the first argument is true, will install an `at_exit` hook
-    # to write out the VM and IP databases.
-    #
     def initialize
       @force_deprovision  = false
       @solved_mutex       = Mutex.new
