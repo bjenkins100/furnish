@@ -8,6 +8,10 @@ class TestLogger < Furnish::TestCase
     @logger = Furnish::Logger.new(@logger_file, 'w')
   end
 
+  def read_logfile
+    File.read(@logger_file.path)
+  end
+
   def test_defaults
     logger = Furnish::Logger.new
     assert_equal($stderr, logger.io, "logger io obj is stderr by default")
@@ -16,7 +20,7 @@ class TestLogger < Furnish::TestCase
 
   def test_logger_behaves_like_io
     @logger.puts "ohai"
-    assert_equal("ohai\n", File.read(@logger_file.path))
+    assert_equal("ohai\n", read_logfile)
   end
 
   def teardown
