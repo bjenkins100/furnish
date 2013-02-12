@@ -19,6 +19,7 @@ module Furnish
     end
 
     def method_missing(sym, *args)
+      raise NoMethodError unless @io.respond_to?(sym)
       @io.__send__(sym, *args)
     end
   end
