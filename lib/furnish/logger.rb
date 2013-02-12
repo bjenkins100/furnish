@@ -6,7 +6,6 @@ module Furnish
     attr_reader :io
 
     def initialize(logger_io=$stderr, debug_level=0)
-      raise ArgumentError, "logger device must be a kind of IO" unless @io.kind_of?(IO)
       @io = logger_io
       @io.sync = true
       @debug_level = debug_level
