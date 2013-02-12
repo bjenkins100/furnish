@@ -20,4 +20,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'palsy', '~> 0.0.1'
 
   gem.add_development_dependency 'rake'
+  gem.add_development_dependency 'minitest', '~> 4.5.0'
 end
