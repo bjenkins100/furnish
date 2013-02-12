@@ -5,7 +5,7 @@ class TestLogger < Furnish::TestCase
   def setup
     super
     @logger_file = Tempfile.new('furnish_log')
-    @logger = Furnish::Logger.new(@logger_file, 'w')
+    @logger = Furnish::Logger.new(@logger_file)
   end
 
   def read_logfile
