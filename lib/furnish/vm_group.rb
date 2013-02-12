@@ -3,7 +3,6 @@ module Furnish
     include Enumerable
 
     def initialize(table_name, box_nil)
-      raise "Must provide a table name!" unless table_name
       super(table_name)
       @box_nil = box_nil
     end
