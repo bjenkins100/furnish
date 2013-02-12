@@ -13,14 +13,14 @@ module Furnish
 
     def if_debug(level=1, else_block=nil, &block)
       if debug_level >= level and block
-        instance_eval(&block)
+        io.instance_eval(&block)
       elsif else_block
-        instance_eval(&else_block)
+        io.instance_eval(&else_block)
       end
     end
 
     def method_missing(sym, *args)
-      raise NoMethodError unless io.respond_to?(sym)
+      raise NoMethodError, "#{io.inspect} has no method #{sym}" unless io.respond_to?(sym)
       io.__send__(sym, *args)
     end
   end
