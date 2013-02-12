@@ -1,5 +1,6 @@
 require 'timeout'
 require 'furnish/vm'
+require 'furnish/logger'
 
 module Furnish
   #
