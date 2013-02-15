@@ -21,4 +21,6 @@ Gem::Specification.new do |gem|
 
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'minitest', '~> 4.5.0'
+  gem.add_development_dependency 'guard-minitest'
+  gem.add_development_dependency 'rb-fsevent'
 end
