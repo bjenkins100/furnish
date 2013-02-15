@@ -1,7 +1,10 @@
 require 'bundler/setup'
 require 'minitest/unit'
-require 'furnish'
 require 'tempfile'
+require 'simplecov'
+require 'furnish'
+
+SimpleCov.start if ENV["COVERAGE"]
 
 module Furnish
   class TestCase < MiniTest::Unit::TestCase

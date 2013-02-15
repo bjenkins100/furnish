@@ -2,6 +2,9 @@
 guard 'minitest' do
   # with Minitest::Unit
   watch(%r|^test/(.*)\/?test_(.*)\.rb|)
-  watch(%r|^lib/(.*)([^/]+)\.rb|)     { |m| "test/#{m[1]}test_#{m[2]}.rb" }
   watch(%r|^test/helper\.rb|)    { "test" }
+end
+
+guard 'rake', :failure_ok => true, :run_on_all => true, :task => 'rdoc_cov' do
+  watch(%r|^lib/(.*)([^/]+)\.rb|)
 end
