@@ -1,15 +1,6 @@
 require 'helper'
-class TestSchedulerBasic < Furnish::TestCase
-  def setup
-    super
-    Furnish.logger(Tempfile.new("furnish_log"), 3)
-  end
 
-  def teardown
-    Furnish.logger.close
-    super
-  end
-
+class TestSchedulerBasic < Furnish::SchedulerTestCase
   def test_schedule_provision
     sched = Furnish::Scheduler.new
 

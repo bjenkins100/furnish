@@ -32,6 +32,18 @@ module Furnish
       end
     end
   end
+
+  class SchedulerTestCase < TestCase
+    def setup
+      super
+      Furnish.logger(Tempfile.new("furnish_log"), 3)
+    end
+
+    def teardown
+      Furnish.logger.close
+      super
+    end
+  end
 end
 
 require 'minitest/autorun'
