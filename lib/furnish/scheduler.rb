@@ -25,6 +25,8 @@ module Furnish
     #
     attr_accessor :force_deprovision
 
+    attr_reader :waiters
+
     def initialize
       @force_deprovision  = false
       @solved_mutex       = Mutex.new
