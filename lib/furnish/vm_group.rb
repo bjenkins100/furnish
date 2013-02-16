@@ -8,7 +8,7 @@ module Furnish
     end
 
     def [](key)
-      rows = @db.execute("select value from #{@table_name} where name=? order by id", [key])
+      rows = @db.execute("select value from #{@table_name} where name=? order by id", [Marshal.dump(key)])
       if rows.count == 0
         @box_nil ? [] : nil
       else
@@ -23,20 +23,21 @@ module Furnish
 
       values = value.map { |x| Marshal.dump(x) }
       value_string = ("(?, ?)," * values.count).chop
+      dumped_key = Marshal.dump(key)
 
-      @db.execute("insert into #{@table_name} (name, value) values #{value_string}", values.map { |x| [key, x] }.flatten)
+      @db.execute("insert into #{@table_name} (name, value) values #{value_string}", values.map { |x| [dumped_key, x] }.flatten)
     end
 
     def keys
-      @db.execute("select distinct name from #{@table_name}").map(&:first)
+      @db.execute("select distinct name from #{@table_name}").map { |x| Marshal.load(x.first) }
     end
 
     def delete(key)
-      @db.execute("delete from #{@table_name} where name=?", [key])
+      @db.execute("delete from #{@table_name} where name=?", [Marshal.dump(key)])
     end
 
     def has_key?(key)
-      @db.execute("select count(*) from #{@table_name} where name=?", [key]).first.first.to_i > 0
+      @db.execute("select count(*) from #{@table_name} where name=?", [Marshal.dump(key)]).first.first.to_i > 0
     end
 
     def each
