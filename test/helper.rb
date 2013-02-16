@@ -35,7 +35,7 @@ module Furnish
   class SchedulerTestCase < TestCase
     def setup
       super
-      Furnish.logger(Tempfile.new("furnish_log"), 3)
+      Furnish.logger = Furnish::Logger.new(Tempfile.new("furnish_log"), 3)
     end
 
     def teardown
