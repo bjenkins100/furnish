@@ -12,7 +12,7 @@
 require 'helper'
 require 'furnish/provisioners/dummy'
 
-Dummy = Furnish::Provisioner::Dummy # I am lazy
+Dummy = Furnish::Provisioner::Dummy unless defined? Dummy
 
 class TestDummy < Furnish::TestCase
   def test_defaults
