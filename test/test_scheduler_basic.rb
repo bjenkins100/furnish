@@ -1,8 +1,4 @@
 require 'helper'
-require 'furnish/provisioners/dummy'
-
-Dummy = Furnish::Provisioner::Dummy unless defined? Dummy
-
 class TestSchedulerBasic < Furnish::TestCase
   def setup
     super
