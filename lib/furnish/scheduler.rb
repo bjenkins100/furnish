@@ -141,17 +141,19 @@ module Furnish
     #
     # Immediately returns if in threaded mode and the solver is already running.
     #
-    def run
+    def run(install_handler=true)
       # short circuit if we're not serial and already running
       return if @solver_thread and !@serial
 
-      handler = lambda do |*args|
-        p ["solved:", solved.to_a]
-        p ["working:", vm_working.to_a]
-        p ["waiting:", @waiters.to_a]
-      end
+      if install_handler
+        handler = lambda do |*args|
+          p ["solved:", solved.to_a]
+          p ["working:", vm_working.to_a]
+          p ["waiting:", @waiters.to_a]
+        end
 
-      %w[USR2 INFO].each { |sig| trap(sig, &handler) if Signal.list[sig] }
+        %w[USR2 INFO].each { |sig| trap(sig, &handler) if Signal.list[sig] }
+      end
 
       queue_runner = lambda do
         run = true
