@@ -5,7 +5,6 @@ require 'simplecov'
 require 'furnish'
 require 'furnish/provisioners/dummy'
 
-
 Dummy = Furnish::Provisioner::Dummy unless defined? Dummy
 
 SimpleCov.start if ENV["COVERAGE"]
