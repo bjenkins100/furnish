@@ -147,9 +147,9 @@ module Furnish
 
       if install_handler
         handler = lambda do |*args|
-          p ["solved:", solved.to_a]
-          p ["working:", vm_working.to_a]
-          p ["waiting:", @waiters.to_a]
+          Furnish.logger.puts ["solved:", solved.to_a].inspect
+          Furnish.logger.puts ["working:", vm_working.to_a].inspect
+          Furnish.logger.puts ["waiting:", @waiters.to_a].inspect
         end
 
         %w[USR2 INFO].each { |sig| trap(sig, &handler) if Signal.list[sig] }
