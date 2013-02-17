@@ -25,6 +25,32 @@ class TestDummy < Furnish::TestCase
     end
   end
 
+  def test_order_check
+    machine_names = %w[one two three]
+    machine_names.each do |name|
+      dummy = Dummy.new
+      dummy.name = name
+      assert(dummy.startup)
+    end
+
+    dummy = Dummy.new
+    assert_kind_of(Furnish::Provisioner::Dummy, dummy)
+    assert_equal(machine_names, dummy.order.to_a, 'order was respected')
+
+    assert(dummy.order.clear)
+    assert_empty(dummy.order.to_a)
+
+    machine_names.each do |name|
+      dummy = Dummy.new
+      dummy.name = name
+      assert(dummy.shutdown)
+    end
+
+    dummy = Dummy.new
+    assert_kind_of(Furnish::Provisioner::Dummy, dummy)
+    assert_equal(machine_names, dummy.order.to_a, 'order was respected')
+  end
+
   def test_delegation_and_marshal
     #
     # This test is so jammed together because the way marshal operates on the
