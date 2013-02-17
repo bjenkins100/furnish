@@ -108,8 +108,9 @@ module Furnish
       return nil if dependencies.empty?
 
       dep_set = dependencies.to_set
+
       until dep_set & solved == dep_set
-        sleep 1
+        sleep 0.1
         @solver_thread.join unless @solver_thread.alive?
       end
     end
