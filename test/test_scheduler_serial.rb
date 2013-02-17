@@ -6,17 +6,6 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
     sched.serial = true
   end
 
-  def assert_started(name)
-    assert_includes(sched.solved, name, 'scheduler thinks it solved it')
-    assert(sched.vm_groups[name].first.store[ [name, "startup"].join("-") ], "dummy provisioner for #{name} recorded the startup run")
-    refute(sched.vm_groups[name].first.store[ [name, "shutdown"].join("-") ], "dummy provisioner for #{name} has not recorded the shutdown run")
-  end
-
-  def assert_shutdown(name, provisioner)
-    refute_includes(sched.solved, name, 'scheduler thinks it solved it')
-    assert(provisioner.store[ [name, "shutdown"].join("-") ], "dummy provisioner for #{name} recorded the shutdown run")
-  end
-
   def test_provision_cycle
     machine_names = %w[blarg blarg2 blarg3]
 
