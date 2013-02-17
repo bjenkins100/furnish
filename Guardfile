@@ -5,6 +5,6 @@ guard 'minitest' do
   watch(%r|^test/helper\.rb|)    { "test" }
 end
 
-guard 'rake', :failure_ok => true, :run_on_all => true, :task => 'rdoc_cov' do
+guard 'rake', :failure_ok => true, :run_on_all => false, :task => 'rdoc_cov' do
   watch(%r|^lib/(.*)([^/]+)\.rb|)
 end
