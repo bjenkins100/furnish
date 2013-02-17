@@ -57,6 +57,11 @@ module Furnish
   end
 
   class RunningSchedulerTestCase < SchedulerTestCase
+    def teardown
+      sched.stop
+      super
+    end
+
     def assert_started(name)
       assert_includes(sched.solved, name, 'scheduler thinks it solved it')
       assert(sched.vm_groups[name].first.store[ [name, "startup"].join("-") ], "dummy provisioner for #{name} recorded the startup run")
