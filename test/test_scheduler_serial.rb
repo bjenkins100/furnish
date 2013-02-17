@@ -93,4 +93,33 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
     @sched.teardown
     assert_equal(dummies.reverse.map(&:id), dummies.first.call_order.to_a)
   end
+
+  def test_single_deprovision
+    assert(@sched.schedule_provision('blarg', Dummy.new))
+    assert(@sched.schedule_provision('blarg2', Dummy.new))
+    assert(@sched.schedule_provision('blarg3', Dummy.new, %w[blarg2]))
+
+    @sched.run
+
+    %w[blarg blarg2 blarg3].each do |name|
+      assert_includes(@sched.solved, name, "#{name} is in the solved list")
+    end
+
+    @sched.teardown_group("blarg")
+
+    [@sched.solved, @sched.vm_groups.keys].each do |coll|
+      assert_includes(coll, "blarg2", "blarg2 is still available")
+      assert_includes(coll, "blarg3", "blarg3 is still available")
+      refute_includes(coll, "blarg", "blarg is not still available")
+    end
+
+    #
+    # vm_dependencies doesn't track empty references, so deprovisions that have
+    # dependencies need some extra checks to ensure their behavior. Basically
+    # this just means they can't be tested generically.
+    #
+    assert_includes(@sched.vm_dependencies.keys, "blarg3", "blarg3 still has dependencies")
+    @sched.teardown_group("blarg3")
+    refute_includes(@sched.vm_dependencies.keys, "blarg3", "blarg3 still has dependencies")
+  end
 end
