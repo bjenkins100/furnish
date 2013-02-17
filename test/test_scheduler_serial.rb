@@ -150,7 +150,7 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
         tempfiles.push(tf)
         Furnish.logger = Furnish::Logger.new(tf)
 
-        @sched.run(false)
+        sched.run(false)
         Process.kill(signal, Process.pid)
 
         sleep 0.1 # wait for any writes to complete
@@ -159,7 +159,7 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
           refute_match(/#{section}/, File.read(tf.path), "#{signal} yielded no output with the #{section} set")
         end
 
-        @sched.run(true)
+        sched.run(true)
         Process.kill(signal, Process.pid)
 
         sleep 0.1 # wait for any writes to complete
