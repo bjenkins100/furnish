@@ -180,6 +180,44 @@ module Furnish
       sched.teardown_group("blarg3")
       refute_includes(sched.vm_dependencies.keys, "blarg3", "blarg3 still has dependencies")
     end
+
+    def test_run_arguments
+      tempfiles = []
+
+      signals = %w[INFO USR2]
+
+      signals.each do |signal|
+        if Signal.list[signal] # not everyone has INFO
+          Signal.trap(signal) { nil } if Signal.list[signal]
+
+          tf = Tempfile.new('furnish_signal_handlers')
+          tempfiles.push(tf)
+          Furnish.logger = Furnish::Logger.new(tf)
+
+          sched.run(false)
+          Process.kill(signal, Process.pid)
+
+          sched.stop
+          sleep 0.1 # wait for any writes to complete
+
+          %w[solved working waiting].each do |section|
+            refute_match(/#{section}/, File.read(tf.path), "#{signal} yielded no output with the #{section} set")
+          end
+
+          sched.run(true)
+          Process.kill(signal, Process.pid)
+
+          sched.stop
+          sleep 0.1 # wait for any writes to complete
+
+          %w[solved working waiting].each do |section|
+            assert_match(/#{section}/, File.read(tf.path), "#{signal} yielded output with the #{section} set")
+          end
+        end
+      end
+    ensure
+      tempfiles.each { |f| f.unlink }
+    end
   end
 end
 
