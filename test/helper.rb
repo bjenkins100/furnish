@@ -26,15 +26,13 @@ SimpleCov.start if ENV["COVERAGE"]
 module Furnish
   class TestCase < MiniTest::Unit::TestCase
 
-    def reinit
+    def setup
       @tempfiles ||= []
       file = Tempfile.new('furnish_db')
       @tempfiles.push(file)
       Furnish.init(file.path)
       return file
     end
-
-    alias setup reinit
 
     def teardown
       Furnish.shutdown
