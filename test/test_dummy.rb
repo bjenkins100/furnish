@@ -51,6 +51,25 @@ class TestDummy < Furnish::TestCase
     assert_equal(machine_names, dummy.order.to_a, 'order was respected')
   end
 
+  def test_call_order
+    dummies = Dummy.new, Dummy.new
+    dummies.each do |x|
+      x.name = "foo"
+      assert(x.startup)
+    end
+
+    assert_equal(dummies.map(&:object_id), dummies.first.call_order.to_a)
+
+    dummies.first.call_order.clear
+
+    dummies.reverse.each do |x|
+      x.name = "foo"
+      assert(x.startup)
+    end
+
+    assert_equal(dummies.reverse.map(&:object_id), dummies.first.call_order.to_a)
+  end
+
   def test_delegation_and_marshal
     #
     # This test is so jammed together because the way marshal operates on the

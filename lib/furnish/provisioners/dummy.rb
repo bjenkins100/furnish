@@ -20,17 +20,18 @@ module Furnish
       #
 
       def marshal_dump
-        [ name, @store, @order ]
+        [ name, @store, @order, @call_order ]
       end
 
       def marshal_load(obj)
-        @name, @store, @order = obj
+        @name, @store, @order, @call_order = obj
         @delegates ||= { }
       end
 
       attr_reader   :delegates
       attr_reader   :store
       attr_reader   :order
+      attr_reader   :call_order
       attr_accessor :name
 
       def initialize(delegates={})
@@ -60,9 +61,11 @@ module Furnish
       def do_delegate(meth_name)
         meth_name = meth_name.to_s
 
+        @call_order = Palsy::List.new('dummy_order', name)
         # indicate we actually did something
         @store[ [name, meth_name].join("-") ] = Time.now.to_i
         @order.push(name)
+        @call_order.push(object_id)
 
         # if we have overridden functionality, run that.
         if @delegates[meth_name]
