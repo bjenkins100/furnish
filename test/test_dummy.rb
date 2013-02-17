@@ -53,21 +53,21 @@ class TestDummy < Furnish::TestCase
 
   def test_call_order
     dummies = Dummy.new, Dummy.new
-    dummies.each do |x|
+    dummies.each_with_index do |x, i|
       x.name = "foo"
+      x.id = "foo#{i}"
       assert(x.startup)
     end
 
-    assert_equal(dummies.map(&:object_id), dummies.first.call_order.to_a)
+    assert_equal(dummies.map(&:id), dummies.first.call_order.to_a)
 
     dummies.first.call_order.clear
 
     dummies.reverse.each do |x|
-      x.name = "foo"
       assert(x.startup)
     end
 
-    assert_equal(dummies.reverse.map(&:object_id), dummies.first.call_order.to_a)
+    assert_equal(dummies.reverse.map(&:id), dummies.first.call_order.to_a)
   end
 
   def test_delegation_and_marshal
