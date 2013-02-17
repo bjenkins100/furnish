@@ -7,6 +7,20 @@ require 'furnish/provisioners/dummy'
 
 Dummy = Furnish::Provisioner::Dummy unless defined? Dummy
 
+class StartFailDummy < Dummy
+  def startup(*args)
+    super
+    false
+  end
+end
+
+class StopFailDummy < Dummy
+  def shutdown
+    super
+    false
+  end
+end
+
 SimpleCov.start if ENV["COVERAGE"]
 
 module Furnish
