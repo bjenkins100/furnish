@@ -33,9 +33,12 @@ module Furnish
   end
 
   class SchedulerTestCase < TestCase
+    attr_reader :sched
+
     def setup
       super
       Furnish.logger = Furnish::Logger.new(Tempfile.new("furnish_log"), 3)
+      @sched = Furnish::Scheduler.new
     end
 
     def teardown

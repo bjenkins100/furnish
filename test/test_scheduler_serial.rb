@@ -3,18 +3,17 @@ require 'helper'
 class TestSchedulerSerial < Furnish::SchedulerTestCase
   def setup
     super
-    @sched = Furnish::Scheduler.new
-    @sched.serial = true
+    sched.serial = true
   end
 
   def assert_started(name)
-    assert_includes(@sched.solved, name, 'scheduler thinks it solved it')
-    assert(@sched.vm_groups[name].first.store[ [name, "startup"].join("-") ], "dummy provisioner for #{name} recorded the startup run")
-    refute(@sched.vm_groups[name].first.store[ [name, "shutdown"].join("-") ], "dummy provisioner for #{name} has not recorded the shutdown run")
+    assert_includes(sched.solved, name, 'scheduler thinks it solved it')
+    assert(sched.vm_groups[name].first.store[ [name, "startup"].join("-") ], "dummy provisioner for #{name} recorded the startup run")
+    refute(sched.vm_groups[name].first.store[ [name, "shutdown"].join("-") ], "dummy provisioner for #{name} has not recorded the shutdown run")
   end
 
   def assert_shutdown(name, provisioner)
-    refute_includes(@sched.solved, name, 'scheduler thinks it solved it')
+    refute_includes(sched.solved, name, 'scheduler thinks it solved it')
     assert(provisioner.store[ [name, "shutdown"].join("-") ], "dummy provisioner for #{name} recorded the shutdown run")
   end
 
@@ -22,18 +21,18 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
     machine_names = %w[blarg blarg2 blarg3]
 
     machine_names.each do |name|
-      assert(@sched.schedule_provision(name, Dummy.new))
+      assert(sched.schedule_provision(name, Dummy.new))
     end
 
-    @sched.run
+    sched.run
 
     machine_names.each do |name|
       assert_started(name)
     end
 
-    machine_provs = machine_names.map { |n| @sched.vm_groups[n].first }
+    machine_provs = machine_names.map { |n| sched.vm_groups[n].first }
 
-    @sched.teardown
+    sched.teardown
 
     machine_names.each_with_index do |name, i|
       assert_shutdown(name, machine_provs[i])
@@ -53,13 +52,13 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
       "blarg5" => []
     }
 
-    assert(@sched.schedule_provision('blarg1', Dummy.new))
-    assert(@sched.schedule_provision('blarg2', Dummy.new, %w[blarg1]))
-    assert(@sched.schedule_provision('blarg3', Dummy.new, %w[blarg1]))
-    assert(@sched.schedule_provision('blarg4', Dummy.new, %w[blarg2 blarg3]))
-    assert(@sched.schedule_provision('blarg5', Dummy.new))
+    assert(sched.schedule_provision('blarg1', Dummy.new))
+    assert(sched.schedule_provision('blarg2', Dummy.new, %w[blarg1]))
+    assert(sched.schedule_provision('blarg3', Dummy.new, %w[blarg1]))
+    assert(sched.schedule_provision('blarg4', Dummy.new, %w[blarg2 blarg3]))
+    assert(sched.schedule_provision('blarg5', Dummy.new))
 
-    @sched.run
+    sched.run
 
     1.upto(5) { |x| assert_started("blarg#{x}") }
 
@@ -75,9 +74,9 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
       possible_next.delete(machine)
     end
 
-    machine_provs = (1..5).map { |n| @sched.vm_groups["blarg#{n}"].first }
+    machine_provs = (1..5).map { |n| sched.vm_groups["blarg#{n}"].first }
 
-    @sched.teardown
+    sched.teardown
 
     1.upto(5) { |x| assert_shutdown("blarg#{x}", machine_provs[x-1]) }
   end
@@ -85,29 +84,29 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
   def test_multiprovision_order
     dummies = [Dummy.new, Dummy.new]
     dummies.each_with_index { |x,i| x.id = i }
-    assert(@sched.schedule_provision('blarg', dummies))
-    @sched.run
+    assert(sched.schedule_provision('blarg', dummies))
+    sched.run
     assert_equal(dummies.map(&:id), dummies.first.call_order.to_a)
     dummies.first.call_order.clear
     assert_empty(dummies.first.call_order.to_a)
-    @sched.teardown
+    sched.teardown
     assert_equal(dummies.reverse.map(&:id), dummies.first.call_order.to_a)
   end
 
   def test_single_deprovision
-    assert(@sched.schedule_provision('blarg', Dummy.new))
-    assert(@sched.schedule_provision('blarg2', Dummy.new))
-    assert(@sched.schedule_provision('blarg3', Dummy.new, %w[blarg2]))
+    assert(sched.schedule_provision('blarg', Dummy.new))
+    assert(sched.schedule_provision('blarg2', Dummy.new))
+    assert(sched.schedule_provision('blarg3', Dummy.new, %w[blarg2]))
 
-    @sched.run
+    sched.run
 
     %w[blarg blarg2 blarg3].each do |name|
-      assert_includes(@sched.solved, name, "#{name} is in the solved list")
+      assert_includes(sched.solved, name, "#{name} is in the solved list")
     end
 
-    @sched.teardown_group("blarg")
+    sched.teardown_group("blarg")
 
-    [@sched.solved, @sched.vm_groups.keys].each do |coll|
+    [sched.solved, sched.vm_groups.keys].each do |coll|
       assert_includes(coll, "blarg2", "blarg2 is still available")
       assert_includes(coll, "blarg3", "blarg3 is still available")
       refute_includes(coll, "blarg", "blarg is not still available")
@@ -118,15 +117,15 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
     # dependencies need some extra checks to ensure their behavior. Basically
     # this just means they can't be tested generically.
     #
-    assert_includes(@sched.vm_dependencies.keys, "blarg3", "blarg3 still has dependencies")
-    @sched.teardown_group("blarg3")
-    refute_includes(@sched.vm_dependencies.keys, "blarg3", "blarg3 still has dependencies")
+    assert_includes(sched.vm_dependencies.keys, "blarg3", "blarg3 still has dependencies")
+    sched.teardown_group("blarg3")
+    refute_includes(sched.vm_dependencies.keys, "blarg3", "blarg3 still has dependencies")
   end
 
   def test_threading_constructs
-    assert(@sched.schedule_provision('blarg', Dummy.new))
-    @sched.run
-    assert_nil(@sched.wait_for('blarg'))
-    @sched.stop # does not explode
+    assert(sched.schedule_provision('blarg', Dummy.new))
+    sched.run
+    assert_nil(sched.wait_for('blarg'))
+    sched.stop # does not explode
   end
 end
