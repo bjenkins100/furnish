@@ -41,6 +41,18 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
   end
 
   def test_dependent_provision
+    # since we can't reliably predict linear order, we just paritition it by
+    # how the dependency resolver should sort things out. This isn't perfect by
+    # any means and largely only works because we're serial here, but allows us
+    # to check the dependency resolver.
+    machine_order = {
+      "blarg1" => %w[blarg2 blarg3],
+      "blarg2" => %w[blarg4],
+      "blarg3" => %w[blarg4],
+      "blarg4" => [],
+      "blarg5" => []
+    }
+
     assert(@sched.schedule_provision('blarg1', Dummy.new))
     assert(@sched.schedule_provision('blarg2', Dummy.new, %w[blarg1]))
     assert(@sched.schedule_provision('blarg3', Dummy.new, %w[blarg1]))
@@ -50,6 +62,18 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
     @sched.run
 
     1.upto(5) { |x| assert_started("blarg#{x}") }
+
+    order = Dummy.new.order
+    possible_next = Set[*%w[blarg1 blarg5]]
+
+    while machine = order.shift
+      assert_includes(possible_next, machine, "machine was matched in possible nexts")
+      machine_order[machine].each do |nexts|
+        possible_next.add(nexts)
+      end
+
+      possible_next.delete(machine)
+    end
 
     machine_provs = (1..5).map { |n| @sched.vm_groups["blarg#{n}"].first }
 
