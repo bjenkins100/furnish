@@ -100,7 +100,7 @@ module Furnish
 
     #
     # Sleep until this list of dependencies are resolved. In parallel mode, will
-    # raise if an exeception occurred while waiting for these resources. In
+    # raise if an exception occurred while waiting for these resources. In
     # serial mode, wait_for just returns nil.
     #
     def wait_for(*dependencies)
