@@ -70,28 +70,16 @@ class TestDummy < Furnish::TestCase
     assert_equal(dummies.reverse.map(&:id), dummies.first.call_order.to_a)
   end
 
-  def test_delegation_and_marshal
-    #
-    # This test is so jammed together because the way marshal operates on the
-    # dummy largely depends on the delegates existing to test properly (they
-    # can't be marshalled)
-    #
-
-    delegates = {
-      "startup"   => proc { false },
-      "shutdown"  => proc { 1 },
-      "report"    => proc { [1] }
-    }
-
-    dummy = Dummy.new(delegates)
-    dummy.name = "dummy_delegation_test"
-    assert_equal(false, dummy.startup, 'startup delegates to to the proc instead of the default')
-    assert_equal(1, dummy.shutdown, 'shutdown delegates to the proc instead of the default')
-    assert_equal([1], dummy.report, 'report delegates to the proc instead of the default')
+  def test_marshal
+    dummy = Dummy.new
+    dummy.name = "dummy_marshal_test"
+    assert(dummy.startup)
+    assert(dummy.shutdown)
+    assert_equal([dummy.name], dummy.report)
 
     obj = Palsy::Object.new('dummy')
     %w[startup shutdown report].each do |meth|
-      assert(obj["dummy_delegation_test-#{meth}"], "#{meth} persists a breadcrumb when run")
+      assert(obj["dummy_marshal_test-#{meth}"], "#{meth} persists a breadcrumb when run")
     end
 
     str = Marshal.dump(dummy)
@@ -100,9 +88,6 @@ class TestDummy < Furnish::TestCase
     newobj = Marshal.load(str)
     assert_kind_of(Furnish::Provisioner::Dummy, newobj)
     refute_equal(dummy.object_id, newobj.object_id)
-
-    assert_equal(delegates, dummy.delegates)
-    refute_equal(delegates, newobj.delegates, "newobj doesn't get to keep delegates")
 
     assert_equal(obj, dummy.store, "palsy object persists")
     assert_equal(obj, newobj.store, "palsy object persists")

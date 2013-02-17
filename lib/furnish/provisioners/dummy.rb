@@ -19,25 +19,14 @@ module Furnish
       # relying on scheduler persistence is a really bad idea.
       #
 
-      def marshal_dump
-        [ name, @store, @order, @call_order, @id ]
-      end
-
-      def marshal_load(obj)
-        @name, @store, @order, @call_order, @id = obj
-        @delegates ||= { }
-      end
-
-      attr_reader   :delegates
       attr_reader   :store
       attr_reader   :order
       attr_accessor :name
       attr_accessor :id
 
-      def initialize(delegates={})
+      def initialize
         @store = Palsy::Object.new('dummy')
         @order = Palsy::List.new('dummy_order', 'shared')
-        @delegates = delegates
       end
 
       def call_order
@@ -70,12 +59,7 @@ module Furnish
         @order.push(name)
         call_order.push(id || "unknown")
 
-        # if we have overridden functionality, run that.
-        if @delegates[meth_name]
-          @delegates[meth_name].call
-        else
-          yield
-        end
+        yield
       end
     end
   end
