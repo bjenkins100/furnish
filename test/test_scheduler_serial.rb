@@ -81,4 +81,16 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
 
     1.upto(5) { |x| assert_shutdown("blarg#{x}", machine_provs[x-1]) }
   end
+
+  def test_multiprovision_order
+    dummies = [Dummy.new, Dummy.new]
+    dummies.each_with_index { |x,i| x.id = i }
+    assert(@sched.schedule_provision('blarg', dummies))
+    @sched.run
+    assert_equal(dummies.map(&:id), dummies.first.call_order.to_a)
+    dummies.first.call_order.clear
+    assert_empty(dummies.first.call_order.to_a)
+    @sched.teardown
+    assert_equal(dummies.reverse.map(&:id), dummies.first.call_order.to_a)
+  end
 end
