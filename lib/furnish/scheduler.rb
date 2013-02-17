@@ -241,7 +241,7 @@ module Furnish
     #
     def service_resolved_waiters
       @waiters_mutex.synchronize do
-        @waiters.replace(@waiters.to_set - (@working.keys.to_set + solved))
+        @waiters.replace(@waiters.to_set - (@working.keys.to_set + solved.to_set))
       end
 
       waiter_iteration = lambda do
@@ -257,7 +257,6 @@ module Furnish
               # FIXME maybe a way to specify initial args?
               args = nil
               provisioner.each do |this_prov|
-                vm_groups[group_name] = provisioner # force a write to the db
                 unless args = this_prov.startup(args)
                   if_debug do
                     puts "Could not provision #{group_name} with provisioner #{this_prov.class.name}"
