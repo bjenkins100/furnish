@@ -33,6 +33,9 @@ module Furnish
       @waiters_mutex      = Mutex.new
       @serial             = false
       @solver_thread      = nil
+      # FIXME rename this -- very confusing, this is the collection of threads
+      #       used to manage the working set, not the collection of in-progress
+      #       provisions.
       @working            = { }
       @waiters            = Palsy::Set.new('vm_scheduler', 'waiters')
       @queue              = Queue.new
@@ -375,6 +378,8 @@ module Furnish
         solved.delete(group_name)
         @waiters_mutex.synchronize do
           @waiters.delete(group_name)
+          @working[group_name].kill rescue nil
+          @working.delete(group_name)
         end
         vm_working.delete(group_name)
         vm_dependencies.delete(group_name)
