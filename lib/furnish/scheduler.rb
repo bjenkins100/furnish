@@ -235,6 +235,7 @@ module Furnish
         @working.values.map { |v| v.join rescue nil }
         @queue << nil
         @solver_thread.join rescue nil
+        @solver_thread = nil
       end
     end
 
