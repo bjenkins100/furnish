@@ -34,9 +34,7 @@ module Furnish
       return file
     end
 
-    def setup
-      reinit
-    end
+    alias setup reinit
 
     def teardown
       Furnish.shutdown
