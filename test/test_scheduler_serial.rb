@@ -39,4 +39,22 @@ class TestSchedulerSerial < Furnish::SchedulerTestCase
       assert_shutdown(name, machine_provs[i])
     end
   end
+
+  def test_dependent_provision
+    assert(@sched.schedule_provision('blarg1', Dummy.new))
+    assert(@sched.schedule_provision('blarg2', Dummy.new, %w[blarg1]))
+    assert(@sched.schedule_provision('blarg3', Dummy.new, %w[blarg1]))
+    assert(@sched.schedule_provision('blarg4', Dummy.new, %w[blarg2 blarg3]))
+    assert(@sched.schedule_provision('blarg5', Dummy.new))
+
+    @sched.run
+
+    1.upto(5) { |x| assert_started("blarg#{x}") }
+
+    machine_provs = (1..5).map { |n| @sched.vm_groups["blarg#{n}"].first }
+
+    @sched.teardown
+
+    1.upto(5) { |x| assert_shutdown("blarg#{x}", machine_provs[x-1]) }
+  end
 end
