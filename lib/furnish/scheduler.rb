@@ -206,22 +206,6 @@ module Furnish
           with_timeout(false) { service_resolved_waiters }
           queue_runner.call
         end
-
-        # we depend on at_exit hooks being fired, and Thread#abort_on_exception
-        # doesn't fire them. This solution bubbles up the exceptions in a similar
-        # fashion without actually sacrificing the at_exit functionality.
-        Thread.new do
-          begin
-            @solver_thread.join
-          rescue Exception => e
-            if_debug do
-              puts "Solver thread encountered an exception:"
-              puts "#{e.class.name}: #{e.message}"
-              puts e.backtrace.join("\n")
-            end
-            Kernel.exit 1
-          end
-        end
       end
     end
 
@@ -234,8 +218,12 @@ module Furnish
         @queue << nil
       else
         @working.values.map { |v| v.join rescue nil }
-        @queue << nil
-        @solver_thread.join rescue nil
+        if @solver_thread and @solver_thread.alive?
+          @queue << nil
+          sleep 0.1 until @queue.empty?
+          @solver_thread.kill
+        end
+
         @solver_thread = nil
       end
     end
