@@ -210,9 +210,11 @@ module Furnish
           begin
             @solver_thread.join
           rescue Exception => e
-            $stderr.puts "Solver thread encountered an exception:"
-            $stderr.puts "#{e.class.name}: #{e.message}"
-            $stderr.puts e.backtrace.join("\n")
+            if_debug do
+              puts "Solver thread encountered an exception:"
+              puts "#{e.class.name}: #{e.message}"
+              puts e.backtrace.join("\n")
+            end
             Kernel.exit 1
           end
         end
@@ -257,7 +259,10 @@ module Furnish
               provisioner.each do |this_prov|
                 vm_groups[group_name] = provisioner # force a write to the db
                 unless args = this_prov.startup(args)
-                  $stderr.puts "Could not provision #{group_name} with provisioner #{this_prov.class.name}"
+                  if_debug do
+                    puts "Could not provision #{group_name} with provisioner #{this_prov.class.name}"
+                  end
+
                   raise "Could not provision #{group_name} with provisioner #{this_prov.class.name}"
                 end
               end
@@ -311,9 +316,11 @@ module Furnish
         dependent_and_working = @working.keys & dependent_items
 
         if dependent_and_working.count > 0
-          $stderr.puts "#{dependent_and_working.inspect} are depending on #{group_name}, which you are trying to deprovision."
-          $stderr.puts "We can't resolve this problem for you, and future converges may fail during this run that would otherwise work."
-          $stderr.puts "Consider using wait_for to better control the dependencies, or turning serial provisioning on."
+          if_debug do
+            puts "#{dependent_and_working.inspect} are depending on #{group_name}, which you are trying to deprovision."
+            puts "We can't resolve this problem for you, and future converges may fail during this run that would otherwise work."
+            puts "Consider using wait_for to better control the dependencies, or turning serial provisioning on."
+          end
         end
 
         deprovision_group(group_name)
