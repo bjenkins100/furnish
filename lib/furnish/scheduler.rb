@@ -118,7 +118,7 @@ module Furnish
     # if there are any. If do_loop is true, it will retry the timeout.
     #
     def with_timeout(do_loop=true)
-      Timeout.timeout(10) do
+      Timeout.timeout(1) do
         dead_working = @working_threads.values.reject(&:alive?)
         if dead_working.size > 0
           dead_working.map(&:join)
