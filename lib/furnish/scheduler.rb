@@ -33,10 +33,7 @@ module Furnish
       @waiters_mutex      = Mutex.new
       @serial             = false
       @solver_thread      = nil
-      # FIXME rename this -- very confusing, this is the collection of threads
-      #       used to manage the working set, not the collection of in-progress
-      #       provisions.
-      @working            = { }
+      @working_threads    = { }
       @waiters            = Palsy::Set.new('vm_scheduler', 'waiters')
       @queue              = Queue.new
       @vm                 = Furnish::VM.new
@@ -122,7 +119,7 @@ module Furnish
     #
     def with_timeout(do_loop=true)
       Timeout.timeout(10) do
-        dead_working = @working.values.reject(&:alive?)
+        dead_working = @working_threads.values.reject(&:alive?)
         if dead_working.size > 0
           dead_working.map(&:join)
         end
@@ -188,7 +185,7 @@ module Furnish
             if r
               @solved_mutex.synchronize do
                 solved.add(r)
-                @working.delete(r)
+                @working_threads.delete(r)
                 vm_working.delete(r)
               end
             else
@@ -217,7 +214,7 @@ module Furnish
       if @serial
         @queue << nil
       else
-        @working.values.map { |v| v.join rescue nil }
+        @working_threads.values.map { |v| v.join rescue nil }
         if @solver_thread and @solver_thread.alive?
           @queue << nil
           sleep 0.1 until @queue.empty?
@@ -234,7 +231,7 @@ module Furnish
     #
     def service_resolved_waiters
       @waiters_mutex.synchronize do
-        @waiters.replace(@waiters.to_set - (@working.keys.to_set + solved.to_set))
+        @waiters.replace(@waiters.to_set - (@working_threads.keys.to_set + solved.to_set))
       end
 
       waiter_iteration = lambda do
@@ -266,10 +263,10 @@ module Furnish
             if @serial
               # HACK: just give the working check something that will always work.
               #       Probably should just mock it.
-              @working[group_name] = Thread.new { sleep }
+              @working_threads[group_name] = Thread.new { sleep }
               provision_block.call
             else
-              @working[group_name] = Thread.new(&provision_block)
+              @working_threads[group_name] = Thread.new(&provision_block)
             end
           end
         end
@@ -305,7 +302,7 @@ module Furnish
       end
 
       @solved_mutex.synchronize do
-        dependent_and_working = @working.keys & dependent_items
+        dependent_and_working = @working_threads.keys & dependent_items
 
         if dependent_and_working.count > 0
           if_debug do
@@ -368,8 +365,8 @@ module Furnish
         solved.delete(group_name)
         @waiters_mutex.synchronize do
           @waiters.delete(group_name)
-          @working[group_name].kill rescue nil
-          @working.delete(group_name)
+          @working_threads[group_name].kill rescue nil
+          @working_threads.delete(group_name)
         end
         vm_working.delete(group_name)
         vm_dependencies.delete(group_name)
