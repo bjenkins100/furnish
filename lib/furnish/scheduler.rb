@@ -152,6 +152,45 @@ module Furnish
       retry if do_loop
     end
 
+    def queue_loop
+      run = true
+
+      while run
+        service_resolved_waiters
+
+        ready = []
+
+        if @queue.empty?
+          if @serial
+            return
+          else
+            with_timeout do
+              # this is where most of the execution time is spent, so ensure
+              # waiters get considered here.
+              service_resolved_waiters
+              ready << @queue.shift
+            end
+          end
+        end
+
+        while !@queue.empty?
+          ready << @queue.shift
+        end
+
+        ready.each do |r|
+          if r
+            @solved_mutex.synchronize do
+              solved.add(r)
+              @working_threads.delete(r)
+              vm_working.delete(r)
+            end
+          else
+            run = false
+          end
+        end
+      end
+    end
+
     #
     # Start the scheduler. In serial mode this call will block until the whole
     # dependency graph is satisfied, or one of the provisions fails, at which
@@ -178,52 +217,13 @@ module Furnish
         %w[USR2 INFO].each { |sig| trap(sig, &handler) if Signal.list[sig] }
       end
 
-      queue_runner = lambda do
-        run = true
-
-        while run
-          service_resolved_waiters
-
-          ready = []
-
-          if @queue.empty?
-            if @serial
-              return
-            else
-              with_timeout do
-                # this is where most of the execution time is spent, so ensure
-                # waiters get considered here.
-                service_resolved_waiters
-                ready << @queue.shift
-              end
-            end
-          end
-
-          while !@queue.empty?
-            ready << @queue.shift
-          end
-
-          ready.each do |r|
-            if r
-              @solved_mutex.synchronize do
-                solved.add(r)
-                @working_threads.delete(r)
-                vm_working.delete(r)
-              end
-            else
-              run = false
-            end
-          end
-        end
-      end
-
       if @serial
         service_resolved_waiters
-        queue_runner.call
+        queue_loop
       else
         @solver_thread = Thread.new do
           with_timeout(false) { service_resolved_waiters }
-          queue_runner.call
+          queue_loop
         end
       end
     end
