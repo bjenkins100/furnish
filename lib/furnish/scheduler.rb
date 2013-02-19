@@ -384,6 +384,18 @@ module Furnish
       end
     end
 
+    def delete_group(group_name)
+      solved.delete(group_name)
+      sync_waiters do |waiters|
+        waiters.delete(group_name)
+      end
+      @working_threads[group_name].kill rescue nil
+      @working_threads.delete(group_name)
+      vm_working.delete(group_name)
+      vm_dependencies.delete(group_name)
+      vm_groups.delete(group_name)
+    end
+
     #
     # Performs the deprovision of a group by replaying its provision strategy
     # backwards and applying the #shutdown method instead of the #startup method.
@@ -392,18 +404,7 @@ module Furnish
     #
     def deprovision_group(group_name, clean_state=true)
       shutdown(group_name)
-
-      if clean_state
-        solved.delete(group_name)
-        sync_waiters do |waiters|
-          waiters.delete(group_name)
-        end
-        @working_threads[group_name].kill rescue nil
-        @working_threads.delete(group_name)
-        vm_working.delete(group_name)
-        vm_dependencies.delete(group_name)
-        vm_groups.delete(group_name)
-      end
+      delete_group(group_name) if clean_state
     end
 
     #
