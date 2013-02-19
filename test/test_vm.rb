@@ -7,7 +7,8 @@ class TestVM < Furnish::TestCase
       :groups       => Furnish::VMGroup,
       :dependencies => Furnish::VMGroup,
       :provisioned  => Palsy::Set,
-      :working      => Palsy::Set
+      :working      => Palsy::Set,
+      :waiters      => Palsy::Set,
     }
 
     kinds.each do |key, klass|

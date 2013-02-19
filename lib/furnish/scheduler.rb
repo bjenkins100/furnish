@@ -25,8 +25,6 @@ module Furnish
     #
     attr_accessor :force_deprovision
 
-    attr_reader :waiters
-
     def initialize
       @force_deprovision  = false
       @solved_mutex       = Mutex.new
@@ -34,7 +32,6 @@ module Furnish
       @serial             = false
       @solver_thread      = nil
       @working_threads    = { }
-      @waiters            = Palsy::Set.new('vm_scheduler', 'waiters')
       @queue              = Queue.new
       @vm                 = Furnish::VM.new
     end
@@ -84,6 +81,13 @@ module Furnish
     end
 
     #
+    # Helper to assist with dealing with a VM object
+    #
+    def vm_waiters
+      @vm.waiters
+    end
+
+    #
     # Schedule a group of VMs for provision. This takes a group name, which is a
     # string, an array of provisioner objects, and a list of string dependencies.
     # If anything in the dependencies list hasn't been pre-declared, it refuses
@@ -103,7 +107,7 @@ module Furnish
 
       vm_dependencies[group_name] = dependencies.to_set
       @waiters_mutex.synchronize do
-        @waiters.add(group_name)
+        vm_waiters.add(group_name)
       end
     end
 
@@ -162,7 +166,7 @@ module Furnish
         handler = lambda do |*args|
           Furnish.logger.puts ["solved:", solved.to_a].inspect
           Furnish.logger.puts ["working:", vm_working.to_a].inspect
-          Furnish.logger.puts ["waiting:", @waiters.to_a].inspect
+          Furnish.logger.puts ["waiting:", vm_waiters.to_a].inspect
         end
 
         %w[USR2 INFO].each { |sig| trap(sig, &handler) if Signal.list[sig] }
@@ -243,11 +247,11 @@ module Furnish
     #
     def service_resolved_waiters
       @waiters_mutex.synchronize do
-        @waiters.replace(@waiters.to_set - (@working_threads.keys.to_set + solved.to_set))
+        vm_waiters.replace(vm_waiters.to_set - (@working_threads.keys.to_set + solved.to_set))
       end
 
       waiter_iteration = lambda do
-        @waiters.each do |group_name|
+        vm_waiters.each do |group_name|
           if (solved.to_set & vm_dependencies[group_name]).to_a == vm_dependencies[group_name]
             if_debug do
               puts "Provisioning #{group_name}"
@@ -376,7 +380,7 @@ module Furnish
       if clean_state
         solved.delete(group_name)
         @waiters_mutex.synchronize do
-          @waiters.delete(group_name)
+          vm_waiters.delete(group_name)
           @working_threads[group_name].kill rescue nil
           @working_threads.delete(group_name)
         end

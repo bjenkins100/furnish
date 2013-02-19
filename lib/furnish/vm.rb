@@ -14,12 +14,15 @@ module Furnish
     attr_reader :provisioned
     # the set of provisioning (working) groups
     attr_reader :working
+    # the set of groups waiting to be provisioned.
+    attr_reader :waiters
 
     def initialize
       @groups        = Furnish::VMGroup.new('vm_groups', false)
       @dependencies  = Furnish::VMGroup.new('vm_dependencies', true)
       @provisioned   = Palsy::Set.new('vm_scheduler', 'provisioned')
       @working       = Palsy::Set.new('vm_scheduler', 'working')
+      @waiters       = Palsy::Set.new('vm_scheduler', 'waiters')
     end
   end
 end
