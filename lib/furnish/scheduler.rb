@@ -39,6 +39,18 @@ module Furnish
       @vm                 = Furnish::VM.new
     end
 
+    def running?
+      return nil if @serial
+      return nil unless @solver_thread
+      if @solver_thread.alive?
+        return true
+      else
+        # XXX if there's an exception to be raised, it'll happen here.
+        @solver_thread.join
+        return nil
+      end
+    end
+
     def if_debug(*args, &block)
       Furnish.logger.if_debug(*args, &block)
     end
