@@ -247,39 +247,50 @@ module Furnish
       end
     end
 
+    def resolve_waiters
+      sync_waiters do |waiters|
+        waiters.replace(waiters.to_set - (@working_threads.keys.to_set + solved.to_set))
+      end
+    end
+
+    def dependencies_solved?(group_name)
+      (solved.to_set & vm_dependencies[group_name]).to_a == vm_dependencies[group_name]
+    end
+
+    def startup_block(group_name)
+      provisioner = vm_groups[group_name]
+
+      lambda do
+        # FIXME maybe a way to specify initial args?
+        args = nil
+        provisioner.each do |this_prov|
+          unless args = this_prov.startup(args)
+            if_debug do
+              puts "Could not provision #{group_name} with provisioner #{this_prov.class.name}"
+            end
+
+            raise "Could not provision #{group_name} with provisioner #{this_prov.class.name}"
+          end
+        end
+        @queue << group_name
+      end
+    end
+
     #
     # This method determines what 'waiters', or provisioners that cannot
     # provision yet because of unresolved dependencies, can be executed.
     #
     def service_resolved_waiters
-      sync_waiters do |waiters|
-        waiters.replace(waiters.to_set - (@working_threads.keys.to_set + solved.to_set))
-      end
+      resolve_waiters
 
       sync_waiters do |waiters|
         waiters.each do |group_name|
-          if (solved.to_set & vm_dependencies[group_name]).to_a == vm_dependencies[group_name]
+          if dependencies_solved?(group_name)
             if_debug do
               puts "Provisioning #{group_name}"
             end
 
-            provisioner = vm_groups[group_name]
-
-            provision_block = lambda do
-              # FIXME maybe a way to specify initial args?
-              args = nil
-              provisioner.each do |this_prov|
-                unless args = this_prov.startup(args)
-                  if_debug do
-                    puts "Could not provision #{group_name} with provisioner #{this_prov.class.name}"
-                  end
-
-                  raise "Could not provision #{group_name} with provisioner #{this_prov.class.name}"
-                end
-              end
-              @queue << group_name
-            end
-
+            provision_block = startup_block(group_name)
             vm_working.add(group_name)
 
             if @serial
