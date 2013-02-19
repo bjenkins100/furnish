@@ -23,6 +23,13 @@ module Furnish
       @provisioned   = Palsy::Set.new('vm_scheduler', 'provisioned')
       @working       = Palsy::Set.new('vm_scheduler', 'working')
       @waiters       = Palsy::Set.new('vm_scheduler', 'waiters')
+      @waiters_mutex = Mutex.new
+    end
+
+    def sync_waiters
+      @waiters_mutex.synchronize do
+        yield @waiters
+      end
     end
   end
 end

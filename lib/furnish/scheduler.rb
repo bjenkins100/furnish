@@ -28,7 +28,6 @@ module Furnish
     def initialize
       @force_deprovision  = false
       @solved_mutex       = Mutex.new
-      @waiters_mutex      = Mutex.new
       @serial             = false
       @solver_thread      = nil
       @working_threads    = { }
@@ -88,6 +87,13 @@ module Furnish
     end
 
     #
+    # Helper to assist with dealing with a VM object
+    #
+    def sync_waiters(&block)
+      @vm.sync_waiters(&block)
+    end
+
+    #
     # Schedule a group of VMs for provision. This takes a group name, which is a
     # string, an array of provisioner objects, and a list of string dependencies.
     # If anything in the dependencies list hasn't been pre-declared, it refuses
@@ -106,8 +112,8 @@ module Furnish
       end
 
       vm_dependencies[group_name] = dependencies.to_set
-      @waiters_mutex.synchronize do
-        vm_waiters.add(group_name)
+      sync_waiters do |waiters|
+        waiters.add(group_name)
       end
     end
 
@@ -246,12 +252,12 @@ module Furnish
     # provision yet because of unresolved dependencies, can be executed.
     #
     def service_resolved_waiters
-      @waiters_mutex.synchronize do
-        vm_waiters.replace(vm_waiters.to_set - (@working_threads.keys.to_set + solved.to_set))
+      sync_waiters do |waiters|
+        waiters.replace(waiters.to_set - (@working_threads.keys.to_set + solved.to_set))
       end
 
-      waiter_iteration = lambda do
-        vm_waiters.each do |group_name|
+      sync_waiters do |waiters|
+        waiters.each do |group_name|
           if (solved.to_set & vm_dependencies[group_name]).to_a == vm_dependencies[group_name]
             if_debug do
               puts "Provisioning #{group_name}"
@@ -286,12 +292,6 @@ module Furnish
             end
           end
         end
-      end
-
-      if @serial
-        waiter_iteration.call
-      else
-        @waiters_mutex.synchronize(&waiter_iteration)
       end
     end
 
@@ -379,11 +379,11 @@ module Furnish
 
       if clean_state
         solved.delete(group_name)
-        @waiters_mutex.synchronize do
-          vm_waiters.delete(group_name)
-          @working_threads[group_name].kill rescue nil
-          @working_threads.delete(group_name)
+        sync_waiters do |waiters|
+          waiters.delete(group_name)
         end
+        @working_threads[group_name].kill rescue nil
+        @working_threads.delete(group_name)
         vm_working.delete(group_name)
         vm_dependencies.delete(group_name)
         vm_groups.delete(group_name)
