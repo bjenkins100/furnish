@@ -257,23 +257,21 @@ module Furnish
       (solved.to_set & vm_dependencies[group_name]).to_a == vm_dependencies[group_name]
     end
 
-    def startup_block(group_name)
+    def startup(group_name)
       provisioner = vm_groups[group_name]
 
-      lambda do
-        # FIXME maybe a way to specify initial args?
-        args = nil
-        provisioner.each do |this_prov|
-          unless args = this_prov.startup(args)
-            if_debug do
-              puts "Could not provision #{group_name} with provisioner #{this_prov.class.name}"
-            end
-
-            raise "Could not provision #{group_name} with provisioner #{this_prov.class.name}"
+      # FIXME maybe a way to specify initial args?
+      args = nil
+      provisioner.each do |this_prov|
+        unless args = this_prov.startup(args)
+          if_debug do
+            puts "Could not provision #{group_name} with provisioner #{this_prov.class.name}"
           end
+
+          raise "Could not provision #{group_name} with provisioner #{this_prov.class.name}"
         end
-        @queue << group_name
       end
+      @queue << group_name
     end
 
     #
@@ -290,16 +288,15 @@ module Furnish
               puts "Provisioning #{group_name}"
             end
 
-            provision_block = startup_block(group_name)
             vm_working.add(group_name)
 
             if @serial
               # HACK: just give the working check something that will always work.
               #       Probably should just mock it.
               @working_threads[group_name] = Thread.new { sleep }
-              provision_block.call
+              startup(group_name)
             else
-              @working_threads[group_name] = Thread.new(&provision_block)
+              @working_threads[group_name] = Thread.new { startup(group_name) }
             end
           end
         end
