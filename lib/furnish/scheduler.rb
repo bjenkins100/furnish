@@ -341,6 +341,49 @@ module Furnish
 
     end
 
+    def can_deprovision?(group_name)
+      ((solved.to_set + vm_working.to_set).include?(group_name) or @force_deprovision)
+    end
+
+    def perform_deprovision(this_prov)
+      result = this_prov.shutdown
+      unless result
+        if_debug do
+          puts "Could not deprovision group #{this_prov.name}."
+        end
+      end
+      return result
+    end
+
+    def shutdown(group_name)
+      provisioner = vm_groups[group_name]
+
+      # if we can't find the provisioner, we probably got asked to clean up
+      # something we never scheduled. Just ignore that.
+      if provisioner and can_deprovision?(group_name)
+        if_debug do
+          puts "Attempting to deprovision group #{group_name}"
+        end
+
+        provisioner.reverse.each do |this_prov|
+          begin
+            unless perform_deprovision(this_prov) or @force_deprovision
+              raise "Could not deprovision #{group_name}/#{this_prov.inspect}"
+            end
+          rescue Exception => e
+            if @force_deprovision
+              if_debug do
+                puts "Deprovision #{this_prov.class.name}/#{group_name} had errors:"
+                puts "#{e.message}"
+              end
+            else
+              raise e
+            end
+          end
+        end
+      end
+    end
+
     #
     # Performs the deprovision of a group by replaying its provision strategy
     # backwards and applying the #shutdown method instead of the #startup method.
@@ -348,42 +391,7 @@ module Furnish
     # argument, which is the default.
     #
     def deprovision_group(group_name, clean_state=true)
-      provisioner = vm_groups[group_name]
-
-      # if we can't find the provisioner, we probably got asked to clean up
-      # something we never scheduled. Just ignore that.
-      if provisioner and ((solved.to_set + vm_working.to_set).include?(group_name) or @force_deprovision)
-        if_debug do
-          puts "Attempting to deprovision group #{group_name}"
-        end
-
-        perform_deprovision = lambda do |this_prov|
-          result = this_prov.shutdown
-          unless result
-            if_debug do
-              puts "Could not deprovision group #{group_name}."
-            end
-          end
-          result
-        end
-
-        provisioner.reverse.each do |this_prov|
-          if @force_deprovision
-            begin
-              perform_deprovision.call(this_prov)
-            rescue Exception => e
-              if_debug do
-                puts "Deprovision #{this_prov.class.name}/#{group_name} had errors:"
-                puts "#{e.message}"
-              end
-            end
-          else
-            unless perform_deprovision.call(this_prov)
-              raise "Could not deprovision #{group_name}/#{this_prov.inspect}"
-            end
-          end
-        end
-      end
+      shutdown(group_name)
 
       if clean_state
         solved.delete(group_name)
