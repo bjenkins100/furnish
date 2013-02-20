@@ -3,6 +3,12 @@ require 'thread'
 
 module Furnish
   class Logger
+    module Mixins
+      def if_debug(*args, &block)
+        Furnish.logger.if_debug(*args, &block)
+      end
+    end
+
     attr_accessor :debug_level
     attr_reader   :io
 

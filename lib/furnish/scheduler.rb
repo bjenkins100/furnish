@@ -11,6 +11,8 @@ module Furnish
   #
   class Scheduler
 
+    include Furnish::Logger::Mixins
+
     ##
     #
     # Turn serial mode on (off by default). This forces the scheduler to execute
@@ -45,10 +47,6 @@ module Furnish
         @solver_thread.join
         return nil
       end
-    end
-
-    def if_debug(*args, &block)
-      Furnish.logger.if_debug(*args, &block)
     end
 
     #
