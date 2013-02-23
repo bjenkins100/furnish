@@ -58,6 +58,13 @@ module Furnish
     def setup
       super
       @sched = Furnish::Scheduler.new
+      @monitor = Thread.new { loop { @sched.running? } }
+      @monitor.abort_on_exception = true
+    end
+
+    def teardown
+      @monitor.kill
+      super
     end
   end
 
