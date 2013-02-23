@@ -55,13 +55,6 @@ module Furnish
     #
     # Helper to assist with dealing with a VM object
     #
-    def vm_waiters
-      @vm.waiters
-    end
-
-    #
-    # Helper to assist with dealing with a VM object
-    #
     def sync_waiters(&block)
       @vm.sync_waiters(&block)
     end
@@ -189,7 +182,7 @@ module Furnish
         handler = lambda do |*args|
           Furnish.logger.puts ["solved:", vm.solved.to_a].inspect
           Furnish.logger.puts ["working:", vm.working.to_a].inspect
-          Furnish.logger.puts ["waiting:", vm_waiters.to_a].inspect
+          Furnish.logger.puts ["waiting:", vm.waiters.to_a].inspect
         end
 
         %w[USR2 INFO].each { |sig| trap(sig, &handler) if Signal.list[sig] }
