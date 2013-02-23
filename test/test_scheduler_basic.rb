@@ -15,7 +15,7 @@ class TestSchedulerBasic < Furnish::SchedulerTestCase
     assert(sched.schedule_provision('blarg2', Dummy.new), 'scheduling does not need an array')
     assert_includes(sched.vm_waiters.keys, 'blarg2', 'exists in the waiters')
     assert_includes(sched.vm_groups.keys, 'blarg2', 'exists in the vm group set')
-    assert_kind_of(Array, sched.vm_groups['blarg2'], 'boxes our single item')
+    assert_kind_of(Furnish::ProvisionerGroup, sched.vm_groups['blarg2'], 'boxes our single item')
     assert_kind_of(Furnish::Provisioner::Dummy, sched.vm_groups['blarg2'].first, 'first object is our dummy object')
     assert_equal('blarg2', sched.vm_groups['blarg2'].first.name, 'name is set properly')
 

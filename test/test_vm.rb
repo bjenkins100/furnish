@@ -4,7 +4,7 @@ class TestVM < Furnish::TestCase
   def test_initialize
     vm = Furnish::VM.new
     kinds = {
-      :groups       => Furnish::VMGroup,
+      :groups       => Palsy::Map,
       :dependencies => Furnish::VMGroup,
       :provisioned  => Palsy::Set,
       :working      => Palsy::Set,

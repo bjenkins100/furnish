@@ -18,7 +18,7 @@ module Furnish
     attr_reader :waiters
 
     def initialize
-      @groups        = Furnish::VMGroup.new('vm_groups', false)
+      @groups        = Palsy::Map.new('vm_groups', 'provisioner_group')
       @dependencies  = Furnish::VMGroup.new('vm_dependencies', true)
       @provisioned   = Palsy::Set.new('vm_scheduler', 'provisioned')
       @working       = Palsy::Set.new('vm_scheduler', 'working')
