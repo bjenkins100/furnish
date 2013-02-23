@@ -1,5 +1,3 @@
-require 'furnish/vm_group'
-
 module Furnish
   #
   # This class mainly exists to track the run state of the Scheduler, and is kept
