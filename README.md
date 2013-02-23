@@ -41,7 +41,7 @@ Or install it yourself as:
 ```ruby
 Furnish.init("state.db")
 # set a logger if you want -- See Furnish::Logger for more info
-Furnish.logger = File.open('log', 'w')
+Furnish.logger = Furnish::Logger.new(File.open('log', 'w'))
 # start a scheduler and start spinning
 scheduler = Furnish::Scheduler.new
 scheduler.run # returns immediately
