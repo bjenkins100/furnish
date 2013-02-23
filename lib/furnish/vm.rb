@@ -24,6 +24,8 @@ module Furnish
       @waiters_mutex = Mutex.new
     end
 
+    alias solved provisioned
+
     def sync_waiters
       @waiters_mutex.synchronize do
         yield @waiters

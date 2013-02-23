@@ -14,6 +14,8 @@ module Furnish
 
     include Furnish::Logger::Mixins
 
+    attr_reader :vm
+
     ##
     #
     # Turn serial mode on (off by default). This forces the scheduler to execute
@@ -48,13 +50,6 @@ module Furnish
         @solver_thread.join
         return nil
       end
-    end
-
-    #
-    # Helper to assist with dealing with a VM object
-    #
-    def solved
-      @vm.provisioned
     end
 
     #
@@ -132,7 +127,7 @@ module Furnish
 
       dep_set = Set[*dependencies]
 
-      until dep_set & solved == dep_set
+      until dep_set & vm.solved == dep_set
         sleep 0.1
         @solver_thread.join unless @solver_thread.alive?
       end
@@ -184,7 +179,7 @@ module Furnish
         ready.each do |r|
           if r
             @solved_mutex.synchronize do
-              solved.add(r)
+              vm.solved.add(r)
               @working_threads.delete(r)
               vm_working.delete(r)
             end
@@ -213,7 +208,7 @@ module Furnish
 
       if install_handler
         handler = lambda do |*args|
-          Furnish.logger.puts ["solved:", solved.to_a].inspect
+          Furnish.logger.puts ["solved:", vm.solved.to_a].inspect
           Furnish.logger.puts ["working:", vm_working.to_a].inspect
           Furnish.logger.puts ["waiting:", vm_waiters.to_a].inspect
         end
@@ -253,12 +248,12 @@ module Furnish
 
     def resolve_waiters
       sync_waiters do |waiters|
-        waiters.replace(waiters.to_set - (@working_threads.keys.to_set + solved.to_set))
+        waiters.replace(waiters.to_set - (@working_threads.keys.to_set + vm.solved.to_set))
       end
     end
 
     def dependencies_solved?(group_name)
-      (solved.to_set & vm_dependencies[group_name]) == vm_dependencies[group_name]
+      (vm.solved.to_set & vm_dependencies[group_name]) == vm_dependencies[group_name]
     end
 
     def startup(group_name)
@@ -338,7 +333,7 @@ module Furnish
     end
 
     def can_deprovision?(group_name)
-      ((solved.to_set + vm_working.to_set).include?(group_name) or @force_deprovision)
+      ((vm.solved.to_set + vm_working.to_set).include?(group_name) or @force_deprovision)
     end
 
     def shutdown(group_name)
@@ -352,7 +347,7 @@ module Furnish
     end
 
     def delete_group(group_name)
-      solved.delete(group_name)
+      vm.solved.delete(group_name)
       sync_waiters do |waiters|
         waiters.delete(group_name)
       end

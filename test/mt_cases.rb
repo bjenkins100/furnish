@@ -75,13 +75,13 @@ module Furnish
     end
 
     def assert_started(name)
-      assert_includes(sched.solved, name, 'scheduler thinks it solved it')
+      assert_includes(sched.vm.solved, name, 'scheduler thinks it solved it')
       assert(sched.vm_groups[name].first.store[ [name, "startup"].join("-") ], "dummy provisioner for #{name} recorded the startup run")
       refute(sched.vm_groups[name].first.store[ [name, "shutdown"].join("-") ], "dummy provisioner for #{name} has not recorded the shutdown run")
     end
 
     def assert_shutdown(name, provisioner)
-      refute_includes(sched.solved, name, 'scheduler thinks it solved it')
+      refute_includes(sched.vm.solved, name, 'scheduler thinks it solved it')
       assert(provisioner.store[ [name, "shutdown"].join("-") ], "dummy provisioner for #{name} recorded the shutdown run")
     end
 
@@ -172,12 +172,12 @@ module Furnish
       sched.wait_for('blarg', 'blarg2', 'blarg3')
 
       %w[blarg blarg2 blarg3].each do |name|
-        assert_includes(sched.solved, name, "#{name} is in the solved list")
+        assert_includes(sched.vm.solved, name, "#{name} is in the solved list")
       end
 
       sched.teardown_group("blarg")
 
-      [sched.solved, sched.vm_groups.keys].each do |coll|
+      [sched.vm.solved, sched.vm_groups.keys].each do |coll|
         assert_includes(coll, "blarg2", "blarg2 is still available")
         assert_includes(coll, "blarg3", "blarg3 is still available")
         refute_includes(coll, "blarg", "blarg is not still available")
@@ -246,21 +246,21 @@ module Furnish
       sched.run
       sched.wait_for('blarg')
       sched.stop
-      assert_includes(sched.solved, "blarg")
+      assert_includes(sched.vm.solved, "blarg")
       sched.teardown
-      refute_includes(sched.solved, "blarg")
+      refute_includes(sched.vm.solved, "blarg")
 
       dummy = StopFailDummy.new
       assert(sched.schedule_provision('blarg', StopFailDummy.new))
       sched.run
       sched.wait_for('blarg')
       sched.stop
-      assert_includes(sched.solved, "blarg")
+      assert_includes(sched.vm.solved, "blarg")
       assert_raises(RuntimeError) { sched.teardown }
-      assert_includes(sched.solved, "blarg")
+      assert_includes(sched.vm.solved, "blarg")
       sched.force_deprovision = true
       sched.teardown
-      refute_includes(sched.solved, "blarg")
+      refute_includes(sched.vm.solved, "blarg")
     end
   end
 end
