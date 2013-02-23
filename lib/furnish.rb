@@ -1,5 +1,7 @@
 require 'palsy'
 require 'furnish/logger'
+require 'furnish/version'
+require 'furnish/scheduler'
 
 module Furnish
   def self.init(database_file)
@@ -19,6 +21,3 @@ module Furnish
     Palsy.instance.close
   end
 end
-
-require 'furnish/version'
-require 'furnish/scheduler'
