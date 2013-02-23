@@ -29,12 +29,11 @@ module Furnish
     def startup(*args)
       each do |this_prov|
         unless args = this_prov.startup(args)
-          name = self.name # FIXME scoping hack, find a better way to deal with this.
           if_debug do
-            puts "Could not provision #{name} with provisioner #{this_prov.class.name}"
+            puts "Could not provision #{this_prov.name} with provisioner #{this_prov.class.name}"
           end
 
-          raise "Could not provision #{name} with provisioner #{this_prov.class.name}"
+          raise "Could not provision #{this_prov.name} with provisioner #{this_prov.class.name}"
         end
       end
 
@@ -49,9 +48,8 @@ module Furnish
           end
         rescue Exception => e
           if force
-            name = self.name # FIXME scoping hack, find a better way to deal with this.
             if_debug do
-              puts "Deprovision #{this_prov.class.name}/#{name} had errors:"
+              puts "Deprovision #{this_prov.class.name}/#{this_prov.name} had errors:"
               puts "#{e.message}"
             end
           else
