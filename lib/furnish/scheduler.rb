@@ -55,13 +55,6 @@ module Furnish
     #
     # Helper to assist with dealing with a VM object
     #
-    def vm_groups
-      @vm.groups
-    end
-
-    #
-    # Helper to assist with dealing with a VM object
-    #
     def vm_dependencies
       @vm.dependencies
     end
@@ -101,11 +94,11 @@ module Furnish
     end
 
     def schedule_provisioner_group(group)
-      return nil if vm_groups[group.name]
+      return nil if vm.groups[group.name]
 
-      vm_groups[group.name] = group
+      vm.groups[group.name] = group
 
-      unless group.dependencies.all? { |x| vm_groups.has_key?(x) }
+      unless group.dependencies.all? { |x| vm.groups.has_key?(x) }
         raise "One of your dependencies for #{group.name} has not been pre-declared. Cannot continue"
       end
 
@@ -257,7 +250,7 @@ module Furnish
     end
 
     def startup(group_name)
-      provisioner = vm_groups[group_name]
+      provisioner = vm.groups[group_name]
 
       # FIXME maybe a way to specify initial args?
       args = nil
@@ -337,7 +330,7 @@ module Furnish
     end
 
     def shutdown(group_name)
-      provisioner = vm_groups[group_name]
+      provisioner = vm.groups[group_name]
 
       # if we can't find the provisioner, we probably got asked to clean up
       # something we never scheduled. Just ignore that.
@@ -355,7 +348,7 @@ module Furnish
       @working_threads.delete(group_name)
       vm_working.delete(group_name)
       vm_dependencies.delete(group_name)
-      vm_groups.delete(group_name)
+      vm.groups.delete(group_name)
     end
 
     #
@@ -378,7 +371,7 @@ module Furnish
     def teardown(exceptions=[])
       stop
 
-      (vm_groups.keys.to_set - exceptions.to_set).each do |group_name|
+      (vm.groups.keys.to_set - exceptions.to_set).each do |group_name|
         deprovision_group(group_name) # clean this after everything finishes
       end
     end

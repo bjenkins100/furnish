@@ -76,8 +76,8 @@ module Furnish
 
     def assert_started(name)
       assert_includes(sched.vm.solved, name, 'scheduler thinks it solved it')
-      assert(sched.vm_groups[name].first.store[ [name, "startup"].join("-") ], "dummy provisioner for #{name} recorded the startup run")
-      refute(sched.vm_groups[name].first.store[ [name, "shutdown"].join("-") ], "dummy provisioner for #{name} has not recorded the shutdown run")
+      assert(sched.vm.groups[name].first.store[ [name, "startup"].join("-") ], "dummy provisioner for #{name} recorded the startup run")
+      refute(sched.vm.groups[name].first.store[ [name, "shutdown"].join("-") ], "dummy provisioner for #{name} has not recorded the shutdown run")
     end
 
     def assert_shutdown(name, provisioner)
@@ -99,7 +99,7 @@ module Furnish
         assert_started(name)
       end
 
-      machine_provs = machine_names.map { |n| sched.vm_groups[n].first }
+      machine_provs = machine_names.map { |n| sched.vm.groups[n].first }
 
       sched.teardown
 
@@ -143,7 +143,7 @@ module Furnish
         possible_next.delete(machine)
       end
 
-      machine_provs = (1..5).map { |n| sched.vm_groups["blarg#{n}"].first }
+      machine_provs = (1..5).map { |n| sched.vm.groups["blarg#{n}"].first }
 
       sched.teardown
 
@@ -177,7 +177,7 @@ module Furnish
 
       sched.teardown_group("blarg")
 
-      [sched.vm.solved, sched.vm_groups.keys].each do |coll|
+      [sched.vm.solved, sched.vm.groups.keys].each do |coll|
         assert_includes(coll, "blarg2", "blarg2 is still available")
         assert_includes(coll, "blarg3", "blarg3 is still available")
         refute_includes(coll, "blarg", "blarg is not still available")
