@@ -1,6 +1,7 @@
 require 'timeout'
 require 'furnish/vm'
 require 'furnish/logger'
+require 'furnish/provisioner_group'
 
 module Furnish
   #
@@ -99,19 +100,24 @@ module Furnish
     #
     # This method will return nil if the server group is already provisioned.
     #
-    def schedule_provision(group_name, provisioner, dependencies=[])
-      return nil if vm_groups[group_name]
-      provisioner = [provisioner] unless provisioner.kind_of?(Array)
-      provisioner.each { |x| x.name = group_name }
-      vm_groups[group_name] = provisioner
+    def schedule_provision(group_name, provisioners, dependencies=[])
+      group = Furnish::ProvisionerGroup.new(provisioners, group_name, dependencies)
+      schedule_provisioner_group(group)
+    end
 
-      unless dependencies.all? { |x| vm_groups.has_key?(x) }
-        raise "One of your dependencies for #{group_name} has not been pre-declared. Cannot continue"
+    def schedule_provisioner_group(group)
+      return nil if vm_groups[group.name]
+
+      vm_groups[group.name] = group
+
+      unless group.dependencies.all? { |x| vm_groups.has_key?(x) }
+        raise "One of your dependencies for #{group.name} has not been pre-declared. Cannot continue"
       end
 
-      vm_dependencies[group_name] = dependencies.to_set
+      vm_dependencies[group.name] = group.dependencies.to_set
+
       sync_waiters do |waiters|
-        waiters.add(group_name)
+        waiters.add(group.name)
       end
     end
 
