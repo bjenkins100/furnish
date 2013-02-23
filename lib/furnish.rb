@@ -1,6 +1,6 @@
 require 'palsy'
-require 'furnish/logger'
 require 'furnish/version'
+require 'furnish/logger'
 require 'furnish/scheduler'
 
 module Furnish
