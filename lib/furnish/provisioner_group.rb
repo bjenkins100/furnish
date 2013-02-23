@@ -27,8 +27,9 @@ module Furnish
     end
 
     def startup(*args)
-      provisioners.each do |this_prov|
+      each do |this_prov|
         unless args = this_prov.startup(args)
+          name = self.name # FIXME scoping hack, find a better way to deal with this.
           if_debug do
             puts "Could not provision #{name} with provisioner #{this_prov.class.name}"
           end
@@ -41,13 +42,14 @@ module Furnish
     end
 
     def shutdown(force=false)
-      provisioners.reverse.each do |this_prov|
+      reverse.each do |this_prov|
         begin
           unless perform_deprovision(this_prov) or force
             raise "Could not deprovision #{name}/#{this_prov.class.name}"
           end
         rescue Exception => e
           if force
+            name = self.name # FIXME scoping hack, find a better way to deal with this.
             if_debug do
               puts "Deprovision #{this_prov.class.name}/#{name} had errors:"
               puts "#{e.message}"
@@ -57,6 +59,18 @@ module Furnish
           end
         end
       end
+    end
+
+    protected
+
+    def perform_deprovision(this_prov)
+      result = this_prov.shutdown
+      unless result
+        if_debug do
+          puts "Could not deprovision group #{this_prov.name}."
+        end
+      end
+      return result
     end
   end
 end
