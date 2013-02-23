@@ -230,6 +230,21 @@ module Furnish
       end
     end
 
+    #
+    # Performs the deprovision of a group by replaying its provision strategy
+    # backwards and applying the #shutdown method instead of the #startup method.
+    # Removes it from the various state tables if true is set as the second
+    # argument, which is the default.
+    #
+    # While this is a part of the public API, you should probably use #teardown
+    # or #teardown_group instead of this method, as they have better error
+    # handling and semantics. This "just does it".
+    #
+    def deprovision_group(group_name, clean_state=true)
+      shutdown(group_name)
+      delete_group(group_name) if clean_state
+    end
+
     #--
     #
     # END OF PUBLIC API
@@ -390,17 +405,6 @@ module Furnish
       vm.working.delete(group_name)
       vm.dependencies.delete(group_name)
       vm.groups.delete(group_name)
-    end
-
-    #
-    # Performs the deprovision of a group by replaying its provision strategy
-    # backwards and applying the #shutdown method instead of the #startup method.
-    # Removes it from the various state tables if true is set as the second
-    # argument, which is the default.
-    #
-    def deprovision_group(group_name, clean_state=true)
-      shutdown(group_name)
-      delete_group(group_name) if clean_state
     end
   end
 end
