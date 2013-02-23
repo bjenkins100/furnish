@@ -53,13 +53,6 @@ module Furnish
     end
 
     #
-    # Helper to assist with dealing with a VM object
-    #
-    def sync_waiters(&block)
-      @vm.sync_waiters(&block)
-    end
-
-    #
     # Schedule a group of VMs for provision. This takes a group name, which is a
     # string, an array of provisioner objects, and a list of string dependencies.
     # If anything in the dependencies list hasn't been pre-declared, it refuses
@@ -83,7 +76,7 @@ module Furnish
 
       vm.dependencies[group.name] = group.dependencies
 
-      sync_waiters do |waiters|
+      vm.sync_waiters do |waiters|
         waiters.add(group.name)
       end
     end
@@ -219,7 +212,7 @@ module Furnish
     end
 
     def resolve_waiters
-      sync_waiters do |waiters|
+      vm.sync_waiters do |waiters|
         waiters.replace(waiters.to_set - (@working_threads.keys.to_set + vm.solved.to_set))
       end
     end
@@ -244,7 +237,7 @@ module Furnish
     def service_resolved_waiters
       resolve_waiters
 
-      sync_waiters do |waiters|
+      vm.sync_waiters do |waiters|
         waiters.each do |group_name|
           if dependencies_solved?(group_name)
             if_debug do
@@ -320,7 +313,7 @@ module Furnish
 
     def delete_group(group_name)
       vm.solved.delete(group_name)
-      sync_waiters do |waiters|
+      vm.sync_waiters do |waiters|
         waiters.delete(group_name)
       end
       @working_threads[group_name].kill rescue nil
