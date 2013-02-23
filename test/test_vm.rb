@@ -6,7 +6,7 @@ class TestVM < Furnish::TestCase
     kinds = {
       :groups       => Palsy::Map,
       :dependencies => Palsy::Map,
-      :provisioned  => Palsy::Set,
+      :solved       => Palsy::Set,
       :working      => Palsy::Set,
       :waiters      => Palsy::Set,
     }
