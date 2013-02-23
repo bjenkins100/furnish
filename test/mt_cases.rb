@@ -63,7 +63,7 @@ module Furnish
     end
 
     def teardown
-      @monitor.kill
+      @monitor.kill rescue nil
       super
     end
   end

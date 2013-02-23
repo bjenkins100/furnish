@@ -27,6 +27,12 @@ class TestSchedulerThreaded < Furnish::RunningSchedulerTestCase
     sched.teardown
     refute(sched.running?, 'not running after teardown')
 
+    # we have a monitor that's waiting for timeouts in the test suite to abort
+    # it if the scheduler crashes.
+    #
+    # this actually tests that functionality, so kill the monitor prematurely.
+    #
+    @monitor.kill rescue nil
     assert(sched.schedule_provision('blarg', SleepyFailingDummy.new))
     sched.run
     assert(sched.running?, 'running after provision')
