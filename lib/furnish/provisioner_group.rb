@@ -21,7 +21,7 @@ module Furnish
       end
 
       @name         = name
-      @dependencies = dependencies
+      @dependencies = dependencies.kind_of?(Set) ? dependencies : Set[*dependencies]
 
       super(provisioners)
     end

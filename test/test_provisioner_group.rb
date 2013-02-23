@@ -6,7 +6,7 @@ class TestProvisionerGroup < Furnish::TestCase
     pg = Furnish::ProvisionerGroup.new(dummy, 'blarg')
     assert_includes(pg, dummy)
     assert_equal('blarg', pg.name)
-    assert_kind_of(Array, pg.dependencies)
+    assert_kind_of(Set, pg.dependencies)
     assert_empty(pg.dependencies)
     assert_equal('blarg', dummy.name)
 
@@ -14,7 +14,7 @@ class TestProvisionerGroup < Furnish::TestCase
     pg = Furnish::ProvisionerGroup.new([dummy], 'blarg2', %w[blarg])
     assert_includes(pg, dummy)
     assert_equal('blarg2', pg.name)
-    assert_equal(['blarg'], pg.dependencies)
+    assert_equal(Set['blarg'], pg.dependencies)
     assert_equal('blarg2', dummy.name)
   end
 

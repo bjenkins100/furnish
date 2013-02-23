@@ -19,7 +19,7 @@ module Furnish
 
     def initialize
       @groups        = Palsy::Map.new('vm_groups', 'provisioner_group')
-      @dependencies  = Furnish::VMGroup.new('vm_dependencies', true)
+      @dependencies  = Palsy::Map.new('vm_groups', 'dependency_group')
       @provisioned   = Palsy::Set.new('vm_scheduler', 'provisioned')
       @working       = Palsy::Set.new('vm_scheduler', 'working')
       @waiters       = Palsy::Set.new('vm_scheduler', 'waiters')

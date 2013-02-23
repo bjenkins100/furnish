@@ -114,7 +114,7 @@ module Furnish
         raise "One of your dependencies for #{group.name} has not been pre-declared. Cannot continue"
       end
 
-      vm_dependencies[group.name] = group.dependencies.to_set
+      vm_dependencies[group.name] = group.dependencies
 
       sync_waiters do |waiters|
         waiters.add(group.name)
@@ -130,7 +130,7 @@ module Furnish
       return nil if @serial
       return nil if dependencies.empty?
 
-      dep_set = dependencies.to_set
+      dep_set = Set[*dependencies]
 
       until dep_set & solved == dep_set
         sleep 0.1
@@ -258,7 +258,7 @@ module Furnish
     end
 
     def dependencies_solved?(group_name)
-      (solved.to_set & vm_dependencies[group_name]).to_a == vm_dependencies[group_name]
+      (solved.to_set & vm_dependencies[group_name]) == vm_dependencies[group_name]
     end
 
     def startup(group_name)
