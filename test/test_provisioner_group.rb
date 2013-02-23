@@ -1,6 +1,6 @@
 require 'helper'
 
-class TestVMGroup < Furnish::TestCase
+class TestProvisionerGroup < Furnish::TestCase
   def test_constructor
     dummy = Dummy.new
     pg = Furnish::ProvisionerGroup.new(dummy, 'blarg')
