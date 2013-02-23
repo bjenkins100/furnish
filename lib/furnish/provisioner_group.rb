@@ -42,10 +42,10 @@ module Furnish
 
     def shutdown(force=false)
       reverse.each do |this_prov|
+        success = false
+
         begin
-          unless perform_deprovision(this_prov) or force
-            raise "Could not deprovision #{name}/#{this_prov.class.name}"
-          end
+          success = perform_deprovision(this_prov) || force
         rescue Exception => e
           if force
             if_debug do
@@ -55,6 +55,10 @@ module Furnish
           else
             raise e
           end
+        end
+
+        unless success or force
+          raise "Could not deprovision #{this_prov.name}/#{this_prov.class.name}"
         end
       end
     end

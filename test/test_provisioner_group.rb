@@ -36,5 +36,16 @@ class TestVMGroup < Furnish::TestCase
     pg = Furnish::ProvisionerGroup.new(dummy, 'blarg3')
     assert_raises(RuntimeError, "Could not deprovision #{pg.name}/#{dummy.class.name}") { pg.shutdown }
     pg.shutdown(true)
+
+    dummy = StartExceptionDummy.new
+    pg = Furnish::ProvisionerGroup.new(dummy, 'blarg4')
+    assert_raises(RuntimeError, "Could not provision #{pg.name} with provisioner #{dummy.class.name}") { pg.startup }
+
+    dummy = StopExceptionDummy.new
+    pg = Furnish::ProvisionerGroup.new(dummy, 'blarg4')
+    assert_raises(RuntimeError, "Could not deprovision #{pg.name}/#{dummy.class.name}") { pg.shutdown }
+    pg.shutdown(true)
+    sleep 0.1 # wait for flush
+    assert_match(%r!Deprovision #{dummy.class.name}/#{pg.name} had errors:!, File.binread(Furnish.logger.path))
   end
 end

@@ -16,6 +16,20 @@ class StopFailDummy < Dummy
   end
 end
 
+class StartExceptionDummy < Dummy
+  def startup(*args)
+    super
+    raise "ermagherd startup"
+  end
+end
+
+class StopExceptionDummy < Dummy
+  def shutdown(*args)
+    super
+    raise "ermagherd shutdown"
+  end
+end
+
 module Furnish
   class TestCase < MiniTest::Unit::TestCase
     def setup
