@@ -1,7 +1,7 @@
 module Furnish
   #
   # This class mainly exists to track the run state of the Scheduler, and is kept
-  # simple so that the contents can be marshalled and restored from a file.
+  # simple. The attributes delegate to Palsy instances.
   #
   class VM
     # the vm groups and their provisioning lists.
@@ -15,6 +15,9 @@ module Furnish
     # the set of groups waiting to be provisioned.
     attr_reader :waiters
 
+    #
+    # Create a new VM object. Should only happen in the Scheduler.
+    #
     def initialize
       @groups        = Palsy::Map.new('vm_groups', 'provisioner_group')
       @dependencies  = Palsy::Map.new('vm_groups', 'dependency_group')
@@ -24,6 +27,9 @@ module Furnish
       @waiters_mutex = Mutex.new
     end
 
+    #
+    # Helper to deal with waiters in a synchronous way.
+    #
     def sync_waiters
       @waiters_mutex.synchronize do
         yield @waiters
