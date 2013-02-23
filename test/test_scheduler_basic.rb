@@ -28,6 +28,6 @@ class TestSchedulerBasic < Furnish::SchedulerTestCase
 
     assert(sched.schedule_provision('blarg4', Dummy.new, %w[blarg2]), 'scheduled with a dependency')
     assert_includes(sched.vm_waiters.keys, 'blarg4', 'included in waiters list')
-    assert_includes(sched.vm_dependencies['blarg4'], 'blarg2', 'dependencies are tracked for provision')
+    assert_includes(sched.vm.dependencies['blarg4'], 'blarg2', 'dependencies are tracked for provision')
   end
 end

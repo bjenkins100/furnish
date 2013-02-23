@@ -55,13 +55,6 @@ module Furnish
     #
     # Helper to assist with dealing with a VM object
     #
-    def vm_dependencies
-      @vm.dependencies
-    end
-
-    #
-    # Helper to assist with dealing with a VM object
-    #
     def vm_working
       @vm.working
     end
@@ -102,7 +95,7 @@ module Furnish
         raise "One of your dependencies for #{group.name} has not been pre-declared. Cannot continue"
       end
 
-      vm_dependencies[group.name] = group.dependencies
+      vm.dependencies[group.name] = group.dependencies
 
       sync_waiters do |waiters|
         waiters.add(group.name)
@@ -246,7 +239,7 @@ module Furnish
     end
 
     def dependencies_solved?(group_name)
-      (vm.solved.to_set & vm_dependencies[group_name]) == vm_dependencies[group_name]
+      (vm.solved.to_set & vm.dependencies[group_name]) == vm.dependencies[group_name]
     end
 
     def startup(group_name)
@@ -301,7 +294,7 @@ module Furnish
     def teardown_group(group_name, wait=true)
       wait_for(group_name) if wait
 
-      dependent_items = vm_dependencies.partition { |k,v| v.include?(group_name) }.first.map(&:first)
+      dependent_items = vm.dependencies.partition { |k,v| v.include?(group_name) }.first.map(&:first)
 
       if_debug do
         if dependent_items.length > 0
@@ -347,7 +340,7 @@ module Furnish
       @working_threads[group_name].kill rescue nil
       @working_threads.delete(group_name)
       vm_working.delete(group_name)
-      vm_dependencies.delete(group_name)
+      vm.dependencies.delete(group_name)
       vm.groups.delete(group_name)
     end
 

@@ -184,13 +184,13 @@ module Furnish
       end
 
       #
-      # vm_dependencies doesn't track empty references, so deprovisions that have
+      # vm.dependencies doesn't track empty references, so deprovisions that have
       # dependencies need some extra checks to ensure their behavior. Basically
       # this just means they can't be tested generically.
       #
-      assert_includes(sched.vm_dependencies.keys, "blarg3", "blarg3 still has dependencies")
+      assert_includes(sched.vm.dependencies.keys, "blarg3", "blarg3 still has dependencies")
       sched.teardown_group("blarg3")
-      refute_includes(sched.vm_dependencies.keys, "blarg3", "blarg3 still has dependencies")
+      refute_includes(sched.vm.dependencies.keys, "blarg3", "blarg3 still has dependencies")
     end
 
     def test_run_arguments
