@@ -14,9 +14,11 @@ module Furnish
 
     include Furnish::Logger::Mixins
 
+    #
+    # Access the VM object.
+    #
     attr_reader :vm
 
-    ##
     #
     # Turn serial mode on (off by default). This forces the scheduler to execute
     # every provision in order, even if it could handle multiple provisions at
@@ -30,6 +32,9 @@ module Furnish
     #
     attr_accessor :force_deprovision
 
+    #
+    # Instantiate the Scheduler.
+    #
     def initialize
       @force_deprovision  = false
       @solved_mutex       = Mutex.new
@@ -40,6 +45,12 @@ module Furnish
       @vm                 = Furnish::VM.new
     end
 
+    #
+    # Ask the scheduler if it's running. Returns nil in serial mode.
+    #
+    # If there's an exception waiting and the scheduler has stopped, it will be
+    # raised here.
+    #
     def running?
       return nil if @serial
       return nil unless @solver_thread
@@ -65,6 +76,10 @@ module Furnish
       schedule_provisioner_group(group)
     end
 
+    #
+    # Schedule a provision with a Furnish::ProvisionerGroup. Works exactly like
+    # Furnish::Scheduler#schedule_provision otherwise.
+    #
     def schedule_provisioner_group(group)
       return nil if vm.groups[group.name]
 
@@ -99,6 +114,131 @@ module Furnish
     end
 
     #
+    # Start the scheduler. In serial mode this call will block until the whole
+    # dependency graph is satisfied, or one of the provisions fails, at which
+    # point an exception will be raised. In parallel mode, this call completes
+    # immediately, and you should use #wait_for to control main thread flow,
+    # and #running? and #stop to control and monitor the threads this class
+    # manages.
+    #
+    # This call also installs a SIGINFO (Ctrl+T in the terminal on macs) and
+    # SIGUSR2 handler which can be used to get information on the status of
+    # what's solved and what's working. You can disable this functionality by
+    # passing `false` as the first argument.
+    #
+    def run(install_handler=true)
+      # short circuit if we're not serial and already running
+      return if @solver_thread and !@serial
+
+      if install_handler
+        handler = lambda do |*args|
+          Furnish.logger.puts ["solved:", vm.solved.to_a].inspect
+          Furnish.logger.puts ["working:", vm.working.to_a].inspect
+          Furnish.logger.puts ["waiting:", vm.waiters.to_a].inspect
+        end
+
+        %w[USR2 INFO].each { |sig| trap(sig, &handler) if Signal.list[sig] }
+      end
+
+      if @serial
+        service_resolved_waiters
+        queue_loop
+      else
+        @solver_thread = Thread.new do
+          with_timeout(false) { service_resolved_waiters }
+          queue_loop
+        end
+      end
+    end
+
+    #
+    # Instructs the scheduler to stop. Note that this is not an interrupt, and
+    # the queue will still be exhausted before terminating.
+    #
+    # It is a good idea to check #running? before calling this to ensure the
+    # scheduler did not halt with an exception.
+    #
+    def stop
+      if @serial
+        @queue << nil
+      else
+        @working_threads.values.map { |v| v.join rescue nil }
+        if @solver_thread and @solver_thread.alive?
+          @queue << nil
+          sleep 0.1 until @queue.empty?
+          @solver_thread.kill
+        end
+
+        @solver_thread = nil
+      end
+    end
+
+    #
+    # Teardown a single group -- modifies the solved formula. Be careful to
+    # resupply dependencies if you use this, as nothing will resolve until you
+    # resupply it.
+    #
+    # This takes an optional argument to wait for the group to be solved before
+    # attempting to tear it down. Setting this to false effectively says, "I know
+    # what I'm doing", and you should feel bad if you file an issue because you
+    # supplied it.
+    #
+    # If #force_provision is true, failed shutdowns from provisioners will not
+    # halt the deprovisioning process.
+    #
+    def teardown_group(group_name, wait=true)
+      wait_for(group_name) if wait
+
+      dependent_items = vm.dependencies.partition { |k,v| v.include?(group_name) }.first.map(&:first)
+
+      if_debug do
+        if dependent_items.length > 0
+          puts "Trying to terminate #{group_name}, found #{dependent_items.inspect} depending on it"
+        end
+      end
+
+      @solved_mutex.synchronize do
+        dependent_and_working = @working_threads.keys & dependent_items
+
+        if dependent_and_working.count > 0
+          if_debug do
+            puts "#{dependent_and_working.inspect} are depending on #{group_name}, which you are trying to deprovision."
+            puts "We can't resolve this problem for you, and future converges may fail during this run that would otherwise work."
+            puts "Consider using wait_for to better control the dependencies, or turning serial provisioning on."
+          end
+        end
+
+        deprovision_group(group_name)
+      end
+
+    end
+
+    #
+    # Instruct all provisioners except ones in the exception list to tear down.
+    # Calls #stop as its first action.
+    #
+    # This is always done serially. For sanity.
+    #
+    # If #force_provision is true, failed shutdowns from provisioners will not
+    # halt the deprovisioning process.
+    #
+    def teardown(exceptions=[])
+      stop
+
+      (vm.groups.keys.to_set - exceptions.to_set).each do |group_name|
+        deprovision_group(group_name) # clean this after everything finishes
+      end
+    end
+
+    #--
+    #
+    # END OF PUBLIC API
+    #
+    #++
+
+    protected
+
+    #
     # Helper method for scheduling. Wraps items in a timeout and immediately
     # checks all running workers for exceptions, which are immediately bubbled up
     # if there are any. If do_loop is true, it will retry the timeout.
@@ -116,6 +256,10 @@ module Furnish
       retry if do_loop
     end
 
+    #
+    # Consume the queue. Runs until a nil enters the queue, unless in serial
+    # mode, where it will terminate when the queue is empty.
+    #
     def queue_loop
       run = true
 
@@ -156,71 +300,24 @@ module Furnish
     end
 
     #
-    # Start the scheduler. In serial mode this call will block until the whole
-    # dependency graph is satisfied, or one of the provisions fails, at which
-    # point an exception will be raised. In parallel mode, this call completes
-    # immediately, and you should use #wait_for to control main thread flow.
+    # Helper method to manage waiters based on solved dependencies.
     #
-    # This call also installs a SIGINFO (Ctrl+T in the terminal on macs) and
-    # SIGUSR2 handler which can be used to get information on the status of
-    # what's solved and what's working.
-    #
-    # Immediately returns if in threaded mode and the solver is already running.
-    #
-    def run(install_handler=true)
-      # short circuit if we're not serial and already running
-      return if @solver_thread and !@serial
-
-      if install_handler
-        handler = lambda do |*args|
-          Furnish.logger.puts ["solved:", vm.solved.to_a].inspect
-          Furnish.logger.puts ["working:", vm.working.to_a].inspect
-          Furnish.logger.puts ["waiting:", vm.waiters.to_a].inspect
-        end
-
-        %w[USR2 INFO].each { |sig| trap(sig, &handler) if Signal.list[sig] }
-      end
-
-      if @serial
-        service_resolved_waiters
-        queue_loop
-      else
-        @solver_thread = Thread.new do
-          with_timeout(false) { service_resolved_waiters }
-          queue_loop
-        end
-      end
-    end
-
-    #
-    # Instructs the scheduler to stop. Note that this is not an interrupt, and
-    # the queue will still be exhausted before terminating.
-    #
-    def stop
-      if @serial
-        @queue << nil
-      else
-        @working_threads.values.map { |v| v.join rescue nil }
-        if @solver_thread and @solver_thread.alive?
-          @queue << nil
-          sleep 0.1 until @queue.empty?
-          @solver_thread.kill
-        end
-
-        @solver_thread = nil
-      end
-    end
-
     def resolve_waiters
       vm.sync_waiters do |waiters|
         waiters.replace(waiters.to_set - (@working_threads.keys.to_set + vm.solved.to_set))
       end
     end
 
+    #
+    # Predicate to determine all of a groups dependencies are in the solved set.
+    #
     def dependencies_solved?(group_name)
       (vm.solved.to_set & vm.dependencies[group_name]) == vm.dependencies[group_name]
     end
 
+    #
+    # Fetch the ProvisionerGroup and start it.
+    #
     def startup(group_name)
       provisioner = vm.groups[group_name]
 
@@ -228,6 +325,19 @@ module Furnish
       args = nil
       provisioner.startup
       @queue << group_name
+    end
+
+    #
+    # Similar to #startup -- just a shim to talk to a specific ProvisionerGroup
+    #
+    def shutdown(group_name)
+      provisioner = vm.groups[group_name]
+
+      # if we can't find the provisioner, we probably got asked to clean up
+      # something we never scheduled. Just ignore that.
+      if provisioner and can_deprovision?(group_name)
+        provisioner.shutdown(@force_deprovision)
+      end
     end
 
     #
@@ -260,57 +370,16 @@ module Furnish
     end
 
     #
-    # Teardown a single group -- modifies the solved formula. Be careful to
-    # resupply dependencies if you use this, as nothing will resolve until you
-    # resupply it.
+    # Predicate to determine if a provisioner group can be shutdown.
     #
-    # This takes an optional argument to wait for the group to be solved before
-    # attempting to tear it down. Setting this to false effectively says, "I know
-    # what I'm doing", and you should feel bad if you file an issue because you
-    # supplied it.
-    #
-
-    def teardown_group(group_name, wait=true)
-      wait_for(group_name) if wait
-
-      dependent_items = vm.dependencies.partition { |k,v| v.include?(group_name) }.first.map(&:first)
-
-      if_debug do
-        if dependent_items.length > 0
-          puts "Trying to terminate #{group_name}, found #{dependent_items.inspect} depending on it"
-        end
-      end
-
-      @solved_mutex.synchronize do
-        dependent_and_working = @working_threads.keys & dependent_items
-
-        if dependent_and_working.count > 0
-          if_debug do
-            puts "#{dependent_and_working.inspect} are depending on #{group_name}, which you are trying to deprovision."
-            puts "We can't resolve this problem for you, and future converges may fail during this run that would otherwise work."
-            puts "Consider using wait_for to better control the dependencies, or turning serial provisioning on."
-          end
-        end
-
-        deprovision_group(group_name)
-      end
-
-    end
-
     def can_deprovision?(group_name)
       ((vm.solved.to_set + vm.working.to_set).include?(group_name) or @force_deprovision)
     end
 
-    def shutdown(group_name)
-      provisioner = vm.groups[group_name]
-
-      # if we can't find the provisioner, we probably got asked to clean up
-      # something we never scheduled. Just ignore that.
-      if provisioner and can_deprovision?(group_name)
-        provisioner.shutdown(@force_deprovision)
-      end
-    end
-
+    #
+    # Wipes the ProvisionerGroup out of the scheduler's state, and terminates
+    # any threads managing it.
+    #
     def delete_group(group_name)
       vm.solved.delete(group_name)
       vm.sync_waiters do |waiters|
@@ -332,20 +401,6 @@ module Furnish
     def deprovision_group(group_name, clean_state=true)
       shutdown(group_name)
       delete_group(group_name) if clean_state
-    end
-
-    #
-    # Instruct all provisioners except ones in the exception list to tear down.
-    # Calls #stop as its first action.
-    #
-    # This is always done serially. For sanity.
-    #
-    def teardown(exceptions=[])
-      stop
-
-      (vm.groups.keys.to_set - exceptions.to_set).each do |group_name|
-        deprovision_group(group_name) # clean this after everything finishes
-      end
     end
   end
 end
