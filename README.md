@@ -10,8 +10,10 @@ state. While chef-workflow uses this for virtual machine and "cloud" things,
 anything that has on and off state can be managed with Furnish.
 
 Furnish is novel because it lets you walk away from the problem of dealing with
-command pipelines and persistence. It has a strong contract to remain able to
-restore its state no matter what happens, see `Contracts` below.
+command pipelines and persistence, in a way that lets you deal with it
+concurrently or serially without caring too much, making testing things that
+use Furnish a lot easier. It has a number of guarantees it makes about this
+stuff. See `Contracts` below.
 
 Outside of that, it's just solving Dining Philosophers with Waiters and
 cheating a little by knowing how MRI's thread scheduler works.
@@ -51,13 +53,21 @@ scheduler.run # blocks until provisions finish
 # Provision something with a Provisioner -- See Furnish::ProvisionerGroup for
 # how to write them.
 scheduler.schedule_provision('some_name', [MyProvisioner.new])
+
 # depend on other provisions
 scheduler.schedule_provision('some_other_name', [MyProvisioner.new], %w[some_name])
+
+# if you want to block the current thread, you can with the wait_for call
+scheduler.wait_for('some_other_name') # waits until some_other_name provisions successfully.
+
 # in threaded mode (the default), these would have already started. If you're
 # in serial mode, you need to kick the scheduler:
 scheduler.run # blocks until everything finishes
-# tell the scheduler to stop -- still finishes what's there.
+
+# tell the scheduler to stop -- still finishes what's there, just doesn't do
+# anything new.
 scheduler.stop
+
 # shutdown furnish -- closes state database 
 Furnish.shutdown
 ```
