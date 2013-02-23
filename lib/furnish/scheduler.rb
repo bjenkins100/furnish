@@ -55,13 +55,6 @@ module Furnish
     #
     # Helper to assist with dealing with a VM object
     #
-    def vm_working
-      @vm.working
-    end
-
-    #
-    # Helper to assist with dealing with a VM object
-    #
     def vm_waiters
       @vm.waiters
     end
@@ -167,7 +160,7 @@ module Furnish
             @solved_mutex.synchronize do
               vm.solved.add(r)
               @working_threads.delete(r)
-              vm_working.delete(r)
+              vm.working.delete(r)
             end
           else
             run = false
@@ -195,7 +188,7 @@ module Furnish
       if install_handler
         handler = lambda do |*args|
           Furnish.logger.puts ["solved:", vm.solved.to_a].inspect
-          Furnish.logger.puts ["working:", vm_working.to_a].inspect
+          Furnish.logger.puts ["working:", vm.working.to_a].inspect
           Furnish.logger.puts ["waiting:", vm_waiters.to_a].inspect
         end
 
@@ -265,7 +258,7 @@ module Furnish
               puts "Provisioning #{group_name}"
             end
 
-            vm_working.add(group_name)
+            vm.working.add(group_name)
 
             if @serial
               # HACK: just give the working check something that will always work.
@@ -319,7 +312,7 @@ module Furnish
     end
 
     def can_deprovision?(group_name)
-      ((vm.solved.to_set + vm_working.to_set).include?(group_name) or @force_deprovision)
+      ((vm.solved.to_set + vm.working.to_set).include?(group_name) or @force_deprovision)
     end
 
     def shutdown(group_name)
@@ -339,7 +332,7 @@ module Furnish
       end
       @working_threads[group_name].kill rescue nil
       @working_threads.delete(group_name)
-      vm_working.delete(group_name)
+      vm.working.delete(group_name)
       vm.dependencies.delete(group_name)
       vm.groups.delete(group_name)
     end
