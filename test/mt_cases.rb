@@ -22,11 +22,15 @@ module Furnish
       @tempfiles ||= []
       file = Tempfile.new('furnish_db')
       @tempfiles.push(file)
+      logfile = Tempfile.new('furnish_log')
+      @tempfiles.push(logfile)
+      Furnish.logger = Furnish::Logger.new(logfile, 3)
       Furnish.init(file.path)
       return file
     end
 
     def teardown
+      Furnish.logger.close
       Furnish.shutdown
       @tempfiles.each do |file|
         file.unlink
@@ -39,13 +43,7 @@ module Furnish
 
     def setup
       super
-      Furnish.logger = Furnish::Logger.new(Tempfile.new("furnish_log"), 3)
       @sched = Furnish::Scheduler.new
-    end
-
-    def teardown
-      Furnish.logger.close
-      super
     end
   end
 
