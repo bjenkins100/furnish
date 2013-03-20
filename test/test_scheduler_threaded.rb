@@ -14,7 +14,7 @@ class SleepyFailingDummy < SleepyDummy
   end
 end
 
-class TestSchedulerThreaded < Furnish::RunningSchedulerTestCase
+class TestSchedulerThreaded < Furnish::RestartingSchedulerTestCase
   def setup
     super
     sched.serial = false

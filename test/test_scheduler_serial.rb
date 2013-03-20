@@ -1,6 +1,6 @@
 require 'helper'
 
-class TestSchedulerSerial < Furnish::RunningSchedulerTestCase
+class TestSchedulerSerial < Furnish::RestartingSchedulerTestCase
   def setup
     super
     sched.serial = true
