@@ -338,7 +338,13 @@ module Furnish
 
       # FIXME maybe a way to specify initial args?
       args = nil
-      provisioner.startup
+
+      provisioner.startup do |this_prov|
+        vm.groups[group_name] = this_prov
+      end
+
+      vm.groups[group_name] = provisioner
+
       @queue << group_name
     end
 

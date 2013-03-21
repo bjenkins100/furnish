@@ -46,7 +46,7 @@ module Furnish
       #
       def report
         do_delegate(__method__) do
-          [name]
+          [name, @persist]
         end
       end
 
@@ -54,6 +54,7 @@ module Furnish
       # startup shim
       #
       def startup(*args)
+        @persist = "floop"
         do_delegate(__method__) do
           true
         end

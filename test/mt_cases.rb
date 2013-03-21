@@ -49,6 +49,34 @@ module Furnish
       assert(provisioner.store[ [name, "shutdown"].join("-") ], "dummy provisioner for #{name} recorded the shutdown run")
     end
 
+    def test_run_tracking
+      #--
+      # This is a tad convoluted. Dummy's startup method sets an ivar which
+      # should be persisted. Then, we retrieve it by examining the result of
+      # the report method, which regurgitates it.
+      #
+      # This ensures that after startup, the provisioner has had its state
+      # tracked, ensuring the correct state.
+      #++
+
+      assert(sched.schedule_provision('test1', Dummy.new))
+      sched.run
+      sched.wait_for('test1')
+      assert_started('test1')
+      assert_equal("floop", sched.vm.groups['test1'].first.report.last, 'state was stored after provision success')
+
+      assert(sched.schedule_provision('test2', [Dummy.new, StartFailDummy.new], []))
+
+      # the next few lines are an unfortunate necessity, sorry.
+      @monitor.kill rescue nil
+      assert_raises(RuntimeError) do
+        sched.run
+        sleep 0.1 while sched.running?
+      end
+
+      assert_equal("floop", sched.vm.groups['test2'].first.report.last, "provision failed but state is still stored for the provisions that succeeded")
+    end
+
     def test_provision_cycle
       machine_names = %w[blarg blarg2 blarg3]
 

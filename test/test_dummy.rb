@@ -17,7 +17,7 @@ class TestDummy < Furnish::TestCase
     dummy.name = 'dummy_test'
     assert(dummy.startup, 'startup returns true by default')
     assert(dummy.shutdown, 'shutdown returns true by default')
-    assert_equal(['dummy_test'], dummy.report, 'report returns boxed name by default')
+    assert_equal(['dummy_test', 'floop'], dummy.report, 'report returns boxed name and ivar by default')
 
     obj = Palsy::Object.new('dummy')
     %w[startup shutdown report].each do |meth|
@@ -75,7 +75,7 @@ class TestDummy < Furnish::TestCase
     dummy.name = "dummy_marshal_test"
     assert(dummy.startup)
     assert(dummy.shutdown)
-    assert_equal([dummy.name], dummy.report)
+    assert_equal([dummy.name, 'floop'], dummy.report)
 
     obj = Palsy::Object.new('dummy')
     %w[startup shutdown report].each do |meth|

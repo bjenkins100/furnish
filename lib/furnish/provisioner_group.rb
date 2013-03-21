@@ -65,6 +65,9 @@ module Furnish
     # provisioning halts, effectively creating a chain of responsibility
     # pattern.
     #
+    # If a block is provided, will yield self to it for each step through the
+    # group.
+    #
     def startup(*args)
       each do |this_prov|
         unless args = this_prov.startup(args)
@@ -74,6 +77,8 @@ module Furnish
 
           raise "Could not provision #{this_prov.name} with provisioner #{this_prov.class.name}"
         end
+
+        yield self if block_given?
       end
 
       return true
