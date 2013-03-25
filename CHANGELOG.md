@@ -1,3 +1,8 @@
+* 0.0.4 (03/25/2013)
+  * Support for FURNISH_DEBUG environment variable for test suites.
+  * Ruby 2.0.0-p0 Compatibility Fixes
+  * Documentation is RDoc 4.0 compatible.
+
 * 0.0.3 (03/21/2013)
   * Fix an issue where state wasn't tracked for provisioners themselves after the provisioning process had started.
 
