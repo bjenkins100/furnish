@@ -89,13 +89,17 @@ module Furnish
     # if_debug is synchronized over the logger's mutex.
     #
     def if_debug(level=1, else_block=nil, &block)
-      @write_mutex.synchronize do
+      run = lambda do
         if debug_level >= level and block
           io.instance_eval(&block)
         elsif else_block
           io.instance_eval(&else_block)
         end
       end
+
+      @write_mutex.synchronize { run.call }
+    rescue ThreadError
+      run.call
     end
 
     #
@@ -104,7 +108,10 @@ module Furnish
     #
     def method_missing(sym, *args)
       raise NoMethodError, "#{io.inspect} has no method #{sym}" unless io.respond_to?(sym)
-      @write_mutex.synchronize { io.__send__(sym, *args) }
+      run = lambda { io.__send__(sym, *args) }
+      @write_mutex.synchronize { run.call }
+    rescue ThreadError
+      run.call
     end
   end
 end
