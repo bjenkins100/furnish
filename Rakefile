@@ -10,7 +10,8 @@ end
 
 RDoc::Task.new do |rdoc|
   rdoc.title = "Furnish: A novel way to do virtual machine provisioning"
-  rdoc.rdoc_files.include("lib/**/*.rb")
+  rdoc.main = "README.md"
+  rdoc.rdoc_files.include("README.md", "lib/**/*.rb")
   rdoc.rdoc_files -= ["lib/furnish/version.rb"]
   if ENV["RDOC_COVER"]
     rdoc.options << "-C"
