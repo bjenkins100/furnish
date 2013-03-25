@@ -19,11 +19,10 @@ class TestProvisionerGroup < Furnish::TestCase
   end
 
   def test_up_down
-    if ENV["FURNISH_DEBUG"]
-      $stderr.puts "Testing logging, output muted"
-      require 'stringio'
-      Furnish.logger = Furnish::Logger.new(StringIO.new, 3)
-    end
+    Furnish.logger.puts "Testing logging, output muted"
+
+    require 'stringio'
+    Furnish.logger = Furnish::Logger.new(StringIO.new, 3)
 
     store = Palsy::Object.new('dummy')
     dummy = Dummy.new
@@ -52,7 +51,6 @@ class TestProvisionerGroup < Furnish::TestCase
     assert_raises(RuntimeError, "Could not deprovision #{pg.name}/#{dummy.class.name}") { pg.shutdown }
     pg.shutdown(true)
     sleep 0.1 # wait for flush
-    output = ENV["FURNISH_DEBUG"] ? Furnish.logger.string : File.binread(Furnish.logger.path)
-    assert_match(%r!Deprovision #{dummy.class.name}/#{pg.name} had errors:!, output)
+    assert_match(%r!Deprovision #{dummy.class.name}/#{pg.name} had errors:!, Furnish.logger.string)
   end
 end
