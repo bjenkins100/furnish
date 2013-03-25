@@ -14,20 +14,31 @@ module Furnish
   # The basic case initializes furnish and the logger in a safe way in setup,
   # and cleans up in teardown.
   #
+  # If FURNISH_DEBUG is present in the environment, the output of the furnish
+  # log will be presented to the standard error. Otherwise, it is sent a log
+  # file.
+  #
   class TestCase < MiniTest::Unit::TestCase
     def setup # :nodoc:
       @tempfiles ||= []
       file = Tempfile.new('furnish_db')
       @tempfiles.push(file)
-      logfile = Tempfile.new('furnish_log')
-      @tempfiles.push(logfile)
-      Furnish.logger = Furnish::Logger.new(logfile, 3)
+      if ENV["FURNISH_DEBUG"]
+        Furnish.logger = Furnish::Logger.new($stderr, 3)
+      else
+        logfile = Tempfile.new('furnish_log')
+        @tempfiles.push(logfile)
+        Furnish.logger = Furnish::Logger.new(logfile, 3)
+      end
       Furnish.init(file.path)
       return file
     end
 
     def teardown # :nodoc:
-      Furnish.logger.close
+      unless ENV["FURNISH_DEBUG"]
+        Furnish.logger.close
+      end
+
       Furnish.shutdown
       @tempfiles.each do |file|
         file.unlink
