@@ -52,6 +52,7 @@ class TestProvisionerGroup < Furnish::TestCase
     assert_raises(RuntimeError, "Could not deprovision #{pg.name}/#{dummy.class.name}") { pg.shutdown }
     pg.shutdown(true)
     sleep 0.1 # wait for flush
-    assert_match(%r!Deprovision #{dummy.class.name}/#{pg.name} had errors:!, Furnish.logger.string)
+    output = ENV["FURNISH_DEBUG"] ? Furnish.logger.string : File.binread(Furnish.logger.path)
+    assert_match(%r!Deprovision #{dummy.class.name}/#{pg.name} had errors:!, output)
   end
 end
