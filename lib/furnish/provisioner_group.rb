@@ -1,6 +1,6 @@
 require 'delegate'
 require 'furnish/logger'
-require 'furnish/provisioner'
+require 'furnish/provisioners/api'
 
 module Furnish
   #
