@@ -94,8 +94,8 @@ module Furnish # :nodoc:
       #       furnish_property :foo, "does a foo", Integer
       #     end
       #
-      #     obj = MyProv.new(:bar => 1) # raises
-      #     obj = MyProv.new(:foo => "string") # raises
+      #     obj = MyProv.new(:bar => 1) # raises, no property
+      #     obj = MyProv.new(:foo => "string") # raises, invalid type
       #     obj = MyProv.new(:foo => 1) # succeeds
       #
       #     obj.foo == 1
