@@ -2,6 +2,7 @@ require 'helper'
 
 class APIDummy < Furnish::Provisioner::API
   furnish_property :foo, "does things with foo", Integer
+  furnish_property "a_string"
   attr_accessor :bar
 end
 
@@ -26,6 +27,7 @@ class TestAPI < Furnish::TestCase
 
     assert_kind_of(Hash, @klass.furnish_properties)
     assert_includes(@klass.furnish_properties, :foo)
+    assert_includes(@klass.furnish_properties, :a_string)
     refute_includes(@klass.furnish_properties, :bar)
     assert_kind_of(Hash, @klass.furnish_properties[:foo])
     assert_equal("does things with foo", @klass.furnish_properties[:foo][:description])
