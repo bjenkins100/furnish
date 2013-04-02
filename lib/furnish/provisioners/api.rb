@@ -1,4 +1,5 @@
 require 'furnish/provisioner'
+require 'furnish/protocol'
 
 module Furnish # :nodoc:
   module Provisioner # :nodoc:
@@ -109,9 +110,17 @@ module Furnish # :nodoc:
         attr_accessor name
 
         furnish_properties[name] = {
-          :description => description,
-          :type => type
+          :description  => description,
+          :type         => type
         }
+      end
+
+      def self.startup_protocol
+        @startup_protocol ||= Furnish::Protocol.new
+      end
+
+      def self.configure_startup(&block)
+        startup_protocol.configure(&block)
       end
 
       ##
