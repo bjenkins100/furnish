@@ -65,22 +65,6 @@ module Furnish
     end
 
     #
-    # Routine to capture the change from #name to #furnish_group_name in
-    # provisioners and log a deprecation if furnish_group_name doesn't exist
-    #
-    def get_name(prov)
-      if prov.respond_to?(:furnish_group_name)
-        prov.furnish_group_name
-      else
-        if_debug(0) do
-          puts "Provisioner #{prov.class.name} is using a deprecated API by providing #name as an accessor for use by Furnish."
-          puts "Please adjust to use #furnish_group_name instead, or inherit from Furnish::Provisioner::API which will deal with this for you."
-        end
-        prov.name
-      end
-    end
-
-    #
     # Provision this group.
     #
     # Initial arguments go to the first provisioner's startup method, and then
