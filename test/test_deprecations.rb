@@ -3,6 +3,7 @@ require 'stringio'
 
 class BadDummy < Furnish::Provisioner::Dummy
   attr_accessor :name
+
   # exists to check name fetching on provision failure (sent to log)
   def startup(*args)
     return false
