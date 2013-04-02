@@ -35,25 +35,49 @@ module Furnish
     # * provisioners can be an array of provisioner objects or a single item
     #   (which will be boxed). This is what the array consists of that this
     #   object is.
-    # * name is a string. always.
+    # * furnish_group_name is a string. always.
     # * dependencies can either be passed as an Array or Set, and will be
     #   converted to a Set if they are not a Set.
     #
-    def initialize(provisioners, name, dependencies=[])
+    def initialize(provisioners, furnish_group_name, dependencies=[])
       #
       # FIXME maybe move the naming construct to here instead of populating it
       #       out to the provisioners
       #
 
       provisioners = [provisioners] unless provisioners.kind_of?(Array)
-      provisioners.each do |p|
-        p.name = name
+      provisioners.each do |prov|
+        if prov.respond_to?(:furnish_group_name=)
+          prov.furnish_group_name = furnish_group_name
+        else
+          if_debug(0) do
+            puts "Provisioner #{prov.class.name} is using a deprecated API by providing #name as an accessor for use by Furnish."
+            puts "Please adjust to use #furnish_group_name instead, or inherit from Furnish::Provisioner::API which will deal with this for you."
+          end
+          prov.name = furnish_group_name
+        end
       end
 
-      @name         = name
+      @name         = furnish_group_name
       @dependencies = dependencies.kind_of?(Set) ? dependencies : Set[*dependencies]
 
       super(provisioners)
+    end
+
+    #
+    # Routine to capture the change from #name to #furnish_group_name in
+    # provisioners and log a deprecation if furnish_group_name doesn't exist
+    #
+    def get_name(prov)
+      if prov.respond_to?(:furnish_group_name)
+        prov.furnish_group_name
+      else
+        if_debug(0) do
+          puts "Provisioner #{prov.class.name} is using a deprecated API by providing #name as an accessor for use by Furnish."
+          puts "Please adjust to use #furnish_group_name instead, or inherit from Furnish::Provisioner::API which will deal with this for you."
+        end
+        prov.name
+      end
     end
 
     #
@@ -71,11 +95,13 @@ module Furnish
     def startup(*args)
       each do |this_prov|
         unless args = this_prov.startup(args)
+          prov_name = get_name(this_prov)
+
           if_debug do
-            puts "Could not provision #{this_prov.name} with provisioner #{this_prov.class.name}"
+            puts "Could not provision #{prov_name} with provisioner #{this_prov.class.name}"
           end
 
-          raise "Could not provision #{this_prov.name} with provisioner #{this_prov.class.name}"
+          raise "Could not provision #{prov_name} with provisioner #{this_prov.class.name}"
         end
 
         yield self if block_given?
@@ -104,8 +130,10 @@ module Furnish
           success = perform_deprovision(this_prov) || force
         rescue Exception => e
           if force
+            prov_name = get_name(this_prov)
+
             if_debug do
-              puts "Deprovision #{this_prov.class.name}/#{this_prov.name} had errors:"
+              puts "Deprovision #{this_prov.class.name}/#{prov_name} had errors:"
               puts "#{e.message}"
             end
           else
@@ -114,7 +142,7 @@ module Furnish
         end
 
         unless success or force
-          raise "Could not deprovision #{this_prov.name}/#{this_prov.class.name}"
+          raise "Could not deprovision #{prov_name}/#{this_prov.class.name}"
         end
       end
     end
@@ -127,8 +155,10 @@ module Furnish
     def perform_deprovision(this_prov)
       result = this_prov.shutdown
       unless result
+        prov_name = get_name(this_prov)
+
         if_debug do
-          puts "Could not deprovision group #{this_prov.name}."
+          puts "Could not deprovision group #{prov_name}."
         end
       end
       return result
