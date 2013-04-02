@@ -2,7 +2,7 @@ require 'helper'
 
 class TestSchedulerBasic < Furnish::SchedulerTestCase
   def test_schedule_provision
-    sched = Furnish::Scheduler.new
+    @sched = Furnish::Scheduler.new
 
     assert(sched.schedule_provision('blarg', [Dummy.new]), 'we can schedule')
     assert_includes(sched.vm.waiters.keys, 'blarg', 'exists in the waiters')
