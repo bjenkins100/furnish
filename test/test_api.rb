@@ -24,7 +24,7 @@ class TestAPI < Furnish::TestCase
     assert_respond_to(obj, :furnish_group_name=)
 
     %w[startup shutdown].each do |meth|
-      assert_raises(RuntimeError, "#{meth} method not implemented for #{@klass.name}") { obj.send(meth) }
+      assert_raises(NotImplementedError, "#{meth} method not implemented for #{@klass.name}") { obj.send(meth) }
     end
   end
 

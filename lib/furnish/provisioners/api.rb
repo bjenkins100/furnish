@@ -104,7 +104,7 @@ module Furnish # :nodoc:
       # expecting you to override it in your provisioner.
       #
       def shutdown
-        raise "shutdown method not implemented for #{self.class.name}"
+        raise NotImplementedError, "shutdown method not implemented for #{self.class.name}"
       end
 
       #
