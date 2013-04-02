@@ -48,6 +48,19 @@ module Furnish # :nodoc:
     # written.
     #
     class API
+      def self.furnish_properties
+        @furnish_properties ||= { }
+      end
+
+      def self.furnish_property(name, description="", type=Object)
+        instance_eval { attr_accessor name }
+
+        furnish_properties[name] = {
+          :description => description,
+          :type => type
+        }
+      end
+
       ##
       # The furnish_group_name is set by Furnish::ProvisionerGroup when
       # scheduling is requested via Furnish::Scheduler. It is a hint to the
@@ -70,7 +83,17 @@ module Furnish # :nodoc:
         end
 
         args.each do |k, v|
-          send("#{k}=", v)
+          props = self.class.furnish_properties
+
+          if props.has_key?(k)
+            if v.kind_of?(props[k][:type])
+              send("#{k}=", v)
+            else
+              raise ArgumentError, "Value for furnish property #{k} on #{self.class.name} does not match type #{props[k][:type]}"
+            end
+          else
+            raise ArgumentError, "Invalid argument #{k}, not a furnish property for #{self.class.name}"
+          end
         end
       end
 

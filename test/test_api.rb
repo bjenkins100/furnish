@@ -1,7 +1,8 @@
 require 'helper'
 
 class APIDummy < Furnish::Provisioner::API
-  attr_accessor :foo
+  furnish_property :foo, "does things with foo", Integer
+  attr_accessor :bar
 end
 
 class TestAPI < Furnish::TestCase
@@ -14,10 +15,22 @@ class TestAPI < Furnish::TestCase
     assert_raises(ArgumentError, "Arguments must be a kind of hash") { @klass.new(nil) }
     obj = @klass.new(:foo => 1)
     assert_equal(1, obj.foo, "attrs are set based on contents of constructor")
-    assert_raises(NoMethodError) { @klass.new(:quux => 2) }
+    assert_raises(ArgumentError) { @klass.new(:quux => 2) }
+    assert_raises(ArgumentError) { @klass.new(:bar => 2) }
+    assert_raises(ArgumentError) { @klass.new(:foo => "string") }
   end
 
   def test_interface
+    assert_respond_to(@klass, :furnish_properties)
+    assert_respond_to(@klass, :furnish_property)
+
+    assert_kind_of(Hash, @klass.furnish_properties)
+    assert_includes(@klass.furnish_properties, :foo)
+    refute_includes(@klass.furnish_properties, :bar)
+    assert_kind_of(Hash, @klass.furnish_properties[:foo])
+    assert_equal("does things with foo", @klass.furnish_properties[:foo][:description])
+    assert_equal(Integer, @klass.furnish_properties[:foo][:type])
+
     obj = @klass.new(:foo => 1)
 
     assert_respond_to(obj, :furnish_group_name)
