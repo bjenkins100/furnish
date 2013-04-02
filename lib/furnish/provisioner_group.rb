@@ -95,13 +95,11 @@ module Furnish
     def startup(*args)
       each do |this_prov|
         unless args = this_prov.startup(args)
-          prov_name = get_name(this_prov)
-
           if_debug do
-            puts "Could not provision #{prov_name} with provisioner #{this_prov.class.name}"
+            puts "Could not provision #{this_prov}"
           end
 
-          raise "Could not provision #{prov_name} with provisioner #{this_prov.class.name}"
+          raise "Could not provision #{this_prov}"
         end
 
         yield self if block_given?
@@ -130,10 +128,8 @@ module Furnish
           success = perform_deprovision(this_prov) || force
         rescue Exception => e
           if force
-            prov_name = get_name(this_prov)
-
             if_debug do
-              puts "Deprovision #{this_prov.class.name}/#{prov_name} had errors:"
+              puts "Deprovision of #{this_prov} had errors:"
               puts "#{e.message}"
             end
           else
@@ -142,7 +138,7 @@ module Furnish
         end
 
         unless success or force
-          raise "Could not deprovision #{prov_name}/#{this_prov.class.name}"
+          raise "Could not deprovision #{this_prov}"
         end
       end
     end
@@ -155,10 +151,8 @@ module Furnish
     def perform_deprovision(this_prov)
       result = this_prov.shutdown
       unless result
-        prov_name = get_name(this_prov)
-
         if_debug do
-          puts "Could not deprovision group #{prov_name}."
+          puts "Could not deprovision group #{this_prov}."
         end
       end
       return result
