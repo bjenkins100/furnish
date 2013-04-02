@@ -51,9 +51,9 @@ module Furnish
     end
 
     VALIDATOR_NAMES.each do |vname|
-      instance_eval <<-EOF
+      class_eval <<-EOF
         def #{vname}(name, description='', type=Object)
-          build(#{vname.inspect}, name, description, type=Object)
+          build(#{vname.inspect}, name, description, type)
         end
       EOF
     end
