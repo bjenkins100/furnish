@@ -66,8 +66,8 @@ module Furnish
       end
     end
 
-    def build(type, name, description, type)
-      @hash[type][name] = {
+    def build(vtype, name, description, type)
+      @hash[vtype][name] = {
         :description => description,
         :type        => type
       }
