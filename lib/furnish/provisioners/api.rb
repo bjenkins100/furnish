@@ -25,7 +25,8 @@ module Furnish # :nodoc:
     #
     # This class provides some basic *optional* boilerplate for:
     #
-    # * initializer/constructor usage
+    # * initializer/constructor usage (see API.new)
+    # * property management / querying (see API.furnish_property)
     # * #furnish_group_name (see Furnish::ProvisionerGroup) usage
     # * standard #report output
     # * #to_s for various ruby functions
@@ -48,10 +49,60 @@ module Furnish # :nodoc:
     # written.
     #
     class API
+      ##
+      # The set of furnish properties for this class. Returns a hash which is
+      # keyed with symbols representing the property name, and the value itself
+      # is a hash which contains two additional key/value combinations, `:type`
+      # and `:description`, e.g.:
+      #
+      #     {
+      #       :my_property => {
+      #         :description => "some description",
+      #         :type => Object
+      #       }
+      #     }
+      #
+      # See API.furnish_property for more information.
+      #
       def self.furnish_properties
         @furnish_properties ||= { }
       end
 
+      #
+      # Configure a furnish property. Used by the standard initializer on
+      # API.new for parameter validation, and provides a queryable interface
+      # for external consumers via API.furnish_properties, which will be
+      # exposed as a class method for your provisioner class.
+      #
+      # The name is a symbol or will be converted to one, and will generate an
+      # accessor for instances of this class. No attempt is made to type check
+      # accessor writes outside of the constructor.
+      #
+      # The description is a string which describes what the property controls.
+      # It is unused by Furnish but exists to allow external consumers the
+      # ability to expose this to third parties. The default is an empty
+      # string.
+      #
+      # The type is a class name (default Object) used for parameter checking
+      # in API.new's initializer. If the value provided during construction is
+      # not a kind of this class, an ArgumentError will be raised. No attempt
+      # is made to deal with inner collection types ala Generics.
+      #
+      # Example:
+      #
+      #     class MyProv < API
+      #       furnish_property :foo, "does a foo", Integer
+      #     end
+      #
+      #     obj = MyProv.new(:bar => 1) # raises
+      #     obj = MyProv.new(:foo => "string") # raises
+      #     obj = MyProv.new(:foo => 1) # succeeds
+      #
+      #     obj.foo == 1
+      #
+      #     MyProv.furnish_properties[:foo] ==
+      #         { :description => "does a foo", :type => Integer }
+      #
       def self.furnish_property(name, description="", type=Object)
         instance_eval { attr_accessor name }
 
@@ -70,7 +121,10 @@ module Furnish # :nodoc:
 
       #
       # Default constructor. If given arguments, must be of type Hash, keys are
-      # the name of attributes and values are set on them.
+      # the name of furnish properties. Raises ArgumentError if no furnish
+      # property exists, or the type of the value provided is not a kind of
+      # type specified in the property. See API.furnish_property for more
+      # information.
       #
       # Does nothing more, not required anywhere in furnish itself -- you may
       # redefine this constructor and work completely differently wrt input and
