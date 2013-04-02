@@ -104,6 +104,8 @@ module Furnish # :nodoc:
       #         { :description => "does a foo", :type => Integer }
       #
       def self.furnish_property(name, description="", type=Object)
+        name = name.to_sym unless name.kind_of?(Symbol)
+
         instance_eval { attr_accessor name }
 
         furnish_properties[name] = {
