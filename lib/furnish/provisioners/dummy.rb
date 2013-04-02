@@ -21,7 +21,7 @@ module Furnish
       # that's ordered between all provisioners.
       attr_reader   :order
       # name of the provisioner according to the API
-      attr_accessor :name
+      attr_accessor :furnish_group_name
       # arbitrary identifier for Dummy#call_order
       attr_accessor :id
 
@@ -38,7 +38,8 @@ module Furnish
       # validate that groups do indeed execute in the proper order.
       #
       def call_order
-        @call_order ||= Palsy::List.new('dummy_order', name)
+        # respond_to? here is to assist with deprecation tests
+        @call_order ||= Palsy::List.new('dummy_order', respond_to?(:furnish_group_name) ? furnish_group_name : name)
       end
 
       #
@@ -46,7 +47,7 @@ module Furnish
       #
       def report
         do_delegate(__method__) do
-          [name, @persist]
+          [furnish_group_name, @persist]
         end
       end
 
@@ -77,8 +78,8 @@ module Furnish
         meth_name = meth_name.to_s
 
         # indicate we actually did something
-        @store[ [name, meth_name].join("-") ] = Time.now.to_i
-        @order.push(name)
+        @store[ [furnish_group_name, meth_name].join("-") ] = Time.now.to_i
+        @order.push(furnish_group_name)
         call_order.push(id || "unknown")
 
         yield

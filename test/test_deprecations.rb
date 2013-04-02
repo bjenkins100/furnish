@@ -2,9 +2,15 @@ require 'helper'
 require 'stringio'
 
 class BadDummy < Furnish::Provisioner::Dummy
-  # exists to check name fetching
+  attr_accessor :name
+  # exists to check name fetching on provision failure (sent to log)
   def startup(*args)
     return false
+  end
+
+  # this retardation lets us make it look like furnish_group_name doesn't exist
+  def respond_to?(arg)
+    super unless [:furnish_group_name, :furnish_group_name=].include?(arg)
   end
 end
 

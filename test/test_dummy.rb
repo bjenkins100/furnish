@@ -14,7 +14,7 @@ require 'helper'
 class TestDummy < Furnish::TestCase
   def test_defaults
     dummy = Dummy.new
-    dummy.name = 'dummy_test'
+    dummy.furnish_group_name = 'dummy_test'
     assert(dummy.startup, 'startup returns true by default')
     assert(dummy.shutdown, 'shutdown returns true by default')
     assert_equal(['dummy_test', 'floop'], dummy.report, 'report returns boxed name and ivar by default')
@@ -29,7 +29,7 @@ class TestDummy < Furnish::TestCase
     machine_names = %w[one two three]
     machine_names.each do |name|
       dummy = Dummy.new
-      dummy.name = name
+      dummy.furnish_group_name = name
       assert(dummy.startup)
     end
 
@@ -42,7 +42,7 @@ class TestDummy < Furnish::TestCase
 
     machine_names.each do |name|
       dummy = Dummy.new
-      dummy.name = name
+      dummy.furnish_group_name = name
       assert(dummy.shutdown)
     end
 
@@ -54,7 +54,7 @@ class TestDummy < Furnish::TestCase
   def test_call_order
     dummies = Dummy.new, Dummy.new
     dummies.each_with_index do |x, i|
-      x.name = "foo"
+      x.furnish_group_name = "foo"
       x.id = "foo#{i}"
       assert(x.startup)
     end
@@ -72,10 +72,10 @@ class TestDummy < Furnish::TestCase
 
   def test_marshal
     dummy = Dummy.new
-    dummy.name = "dummy_marshal_test"
+    dummy.furnish_group_name = "dummy_marshal_test"
     assert(dummy.startup)
     assert(dummy.shutdown)
-    assert_equal([dummy.name, 'floop'], dummy.report)
+    assert_equal([dummy.furnish_group_name, 'floop'], dummy.report)
 
     obj = Palsy::Object.new('dummy')
     %w[startup shutdown report].each do |meth|
