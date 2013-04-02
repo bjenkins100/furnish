@@ -7,7 +7,7 @@ module Furnish
     # In short, unless you're writing tests you should probably never use this
     # code.
     #
-    class Dummy
+    class Dummy < API
 
       #--
       # Some dancing around the marshal issues with this provisioner. Note that
@@ -17,11 +17,11 @@ module Furnish
 
       # basic Palsy::Object store for stuffing random stuff
       attr_reader   :store
+
       # order tracking via Palsy::List, delegation makes a breadcrumb here
       # that's ordered between all provisioners.
       attr_reader   :order
-      # name of the provisioner according to the API
-      attr_accessor :furnish_group_name
+
       # arbitrary identifier for Dummy#call_order
       attr_accessor :id
 
