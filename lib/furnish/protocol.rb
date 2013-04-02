@@ -29,10 +29,7 @@ module Furnish
       yp = protocol[:yields]
       rp = self[:requires]
 
-      return true   if rp.keys.empty?
-      return false  unless (yp.keys & rp.keys).sort == rp.keys.sort
-
-      return true
+      rp.keys.empty? || (yp.keys & rp.keys).sort == rp.keys.sort
     end
 
     def accepts_from(protocol)
@@ -53,6 +50,7 @@ module Furnish
     VALIDATOR_NAMES.each do |vname|
       class_eval <<-EOF
         def #{vname}(name, description='', type=Object)
+          name = name.to_sym unless name.kind_of?(Symbol)
           build(#{vname.inspect}, name, description, type)
         end
       EOF
