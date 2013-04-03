@@ -39,6 +39,10 @@ module Furnish
     # * dependencies can either be passed as an Array or Set, and will be
     #   converted to a Set if they are not a Set.
     #
+    # See #assert_provisioner_protocol, Furnish::Protocol, and
+    # Furnish::Provisioner::API for information on how a set of provisioner
+    # objects will be validated during the construction of the group.
+    #
     def initialize(provisioners, furnish_group_name, dependencies=[])
       #
       # FIXME maybe move the naming construct to here instead of populating it
@@ -71,6 +75,14 @@ module Furnish
       super(provisioners)
     end
 
+    #
+    # Asserts that all the provisioners can communicate with each other.
+    #
+    # This leverages the Furnish::Protocol#requires_from and
+    # Furnish::Protocol#accepts_from assertions and raises if they return
+    # false. It walks over any provisioners that do not implement
+    # Furnish::Protocol.
+    #
     def assert_provisioner_protocol(provisioners)
       iterator = provisioners.dup
       yielding = iterator.shift

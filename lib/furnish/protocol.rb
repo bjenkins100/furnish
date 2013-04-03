@@ -1,4 +1,4 @@
-module Furnish
+module Furnish # :nodoc:
   class Protocol
     VALIDATOR_NAMES = [:requires, :accepts, :yields] # :nodoc:
 

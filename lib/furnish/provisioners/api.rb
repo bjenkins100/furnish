@@ -115,10 +115,49 @@ module Furnish # :nodoc:
         }
       end
 
+      #
+      # This contains the Furnish::Protocol configuration for startup (aka
+      # provisioning) state execution. See API.configure_startup for more
+      # information.
+      #
       def self.startup_protocol
         @startup_protocol ||= Furnish::Protocol.new
       end
 
+      #
+      # configure the Furnish::Protocol for startup state execution. This
+      # allows you to define constraints for your provisioner that are used at
+      # scheduling time to determine whether or not the ProvisionerGroup will
+      # be able to finish its provision.
+      #
+      # It's a bit like run-time type inference for a full provision; it just
+      # tries to figure out if it'll break before it runs.
+      #
+      # The block provided will be instance_eval'd over a Furnish::Protocol
+      # object. You can use methods like Furnish::Protocol#accepts_from_any,
+      # Furnish::Protocol#requires, Furnish::Protocol#accepts,
+      # Furnish::Protocol#yields to describe what it'll pass on to the next
+      # provisioner or expects from the one coming before it.
+      #
+      # Example:
+      #
+      #     class MyProv < API
+      #       configure_startup do
+      #         requires :ip_address, "the IP address returned by the last provision", String
+      #         accepts :network, "A CIDR network used by the last provision", String
+      #         yields :port, "A TCP port for the service allocated by this provisioner", Integer
+      #       end
+      #     end
+      #
+      # This means:
+      #
+      # * An IP address has to come from the previous provisioner named "ip_address".
+      # * If a network CIDR was supplied, it will be used.
+      # * This provision will provide a TCP port number for whatever it makes,
+      #   which the next provisioner can work with.
+      #
+      # See Furnish::Protocol for more information.
+      #
       def self.configure_startup(&block)
         startup_protocol.configure(&block)
       end
