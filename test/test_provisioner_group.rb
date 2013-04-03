@@ -16,6 +16,9 @@ class TestProvisionerGroup < Furnish::TestCase
     assert_equal('blarg2', pg.name)
     assert_equal(Set['blarg'], pg.dependencies)
     assert_equal('blarg2', dummy.furnish_group_name)
+
+    assert_raises(ArgumentError, "A non-empty list of provisioners must be provided") { Furnish::ProvisionerGroup.new([], 'blarg3') }
+    assert_raises(ArgumentError, "A non-empty list of provisioners must be provided") { Furnish::ProvisionerGroup.new(nil, 'blarg3') }
   end
 
   def test_up_down

@@ -45,7 +45,12 @@ module Furnish
       #       out to the provisioners
       #
 
-      provisioners = [provisioners] unless provisioners.kind_of?(Array)
+      provisioners = [provisioners].compact unless provisioners.kind_of?(Array)
+
+      if provisioners.empty?
+        raise ArgumentError, "A non-empty list of provisioners must be provided"
+      end
+
       provisioners.each do |prov|
         if prov.respond_to?(:furnish_group_name=)
           prov.furnish_group_name = furnish_group_name
