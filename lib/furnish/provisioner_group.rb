@@ -61,7 +61,31 @@ module Furnish
       @name         = furnish_group_name
       @dependencies = dependencies.kind_of?(Set) ? dependencies : Set[*dependencies]
 
+      assert_provisioner_protocol(provisioners)
+
       super(provisioners)
+    end
+
+    def assert_provisioner_protocol(provisioners)
+      iterator = provisioners.dup
+      yielding = iterator.shift
+
+      while accepting = iterator.shift
+        y_proto = yielding.class.startup_protocol rescue nil
+        a_proto = accepting.class.startup_protocol rescue nil
+
+        if y_proto and a_proto
+          unless a_proto.requires_from(y_proto)
+            raise ArgumentError, "#{accepting.class} requires information during startup that #{yielding.class} does not yield"
+          end
+
+          unless a_proto.accepts_from(y_proto)
+            raise ArgumentError, "#{accepting.class} expects information during startup from #{yielding.class} that will not be delivered"
+          end
+        end
+
+        yielding = accepting
+      end
     end
 
     #

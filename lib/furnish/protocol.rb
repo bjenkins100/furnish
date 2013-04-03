@@ -22,7 +22,7 @@ module Furnish
     end
 
     def requires_from(protocol)
-      not_configurable
+      not_configurable(__method__)
 
       return true unless protocol
 
@@ -33,7 +33,7 @@ module Furnish
     end
 
     def accepts_from(protocol)
-      not_configurable
+      not_configurable(__method__)
 
       return true unless protocol
 
@@ -58,9 +58,9 @@ module Furnish
 
     private
 
-    def not_configurable
+    def not_configurable(meth_name)
       if @configuring
-        raise RuntimeError, "cannot use this method during configuration"
+        raise RuntimeError, "cannot use method '#{meth_name}' during protocol configuration"
       end
     end
 
