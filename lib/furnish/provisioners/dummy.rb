@@ -8,8 +8,6 @@ module Furnish
     # code.
     #
     class Dummy < API
-      configure_startup { accepts_from_any true }
-
       #--
       # Some dancing around the marshal issues with this provisioner. Note that
       # after restoration, any delegates you set will no longer exist, so

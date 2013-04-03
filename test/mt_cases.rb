@@ -4,8 +4,6 @@ require 'furnish/test'
 Dummy = Furnish::Provisioner::Dummy unless defined? Dummy
 
 class StartFailDummy < Dummy
-  configure_startup { accepts_from_any true }
-
   def startup(*args)
     super
     false
@@ -13,8 +11,6 @@ class StartFailDummy < Dummy
 end
 
 class StopFailDummy < Dummy
-  configure_startup { accepts_from_any true }
-
   def shutdown
     super
     false
@@ -22,8 +18,6 @@ class StopFailDummy < Dummy
 end
 
 class StartExceptionDummy < Dummy
-  configure_startup { accepts_from_any true }
-
   def startup(*args)
     super
     raise "ermagherd startup"
@@ -31,8 +25,6 @@ class StartExceptionDummy < Dummy
 end
 
 class StopExceptionDummy < Dummy
-  configure_startup { accepts_from_any true }
-
   def shutdown(*args)
     super
     raise "ermagherd shutdown"
