@@ -90,6 +90,46 @@ class TestProtocol < Furnish::TestCase
     proto2.requires(:quux)
 
     refute(proto2.requires_from(proto1))
+
+    proto1 = Furnish::Protocol.new
+    proto2 = Furnish::Protocol.new
+
+    proto1.yields(:bar, "bar", Integer)
+    proto2.requires(:bar, "bar", Integer)
+
+    assert(proto2.requires_from(proto1), 'types match')
+
+    proto1 = Furnish::Protocol.new
+    proto2 = Furnish::Protocol.new
+
+    proto1.yields(:bar, "bar", Integer)
+    proto2.requires(:bar, "bar", Fixnum)
+
+    assert(proto2.requires_from(proto1), 'Integer is an ancestor of Fixnum')
+
+    proto1 = Furnish::Protocol.new
+    proto2 = Furnish::Protocol.new
+
+    proto1.yields(:bar, "bar", Fixnum)
+    proto2.requires(:bar, "bar", Integer)
+
+    refute(proto2.requires_from(proto1), 'Fixnum is not an ancestor of Integer')
+
+    proto1 = Furnish::Protocol.new
+    proto2 = Furnish::Protocol.new
+
+    proto1.yields(:bar, "bar", String)
+    proto2.requires(:bar, "bar", Integer)
+
+    refute(proto2.requires_from(proto1), 'completely different types (String/Integer)')
+
+    proto1 = Furnish::Protocol.new
+    proto2 = Furnish::Protocol.new
+
+    proto1.yields(:bar, "bar")
+    proto2.requires(:bar, "bar", Integer)
+
+    assert(proto2.requires_from(proto1), 'default type is Object, succeeds with other types')
   end
 
   def test_accepts_from
@@ -119,5 +159,45 @@ class TestProtocol < Furnish::TestCase
     proto1.yields(:quux)
 
     assert(proto2.accepts_from(proto1))
+
+    proto1 = Furnish::Protocol.new
+    proto2 = Furnish::Protocol.new
+
+    proto1.yields(:bar, "bar", Integer)
+    proto2.accepts(:bar, "bar", Integer)
+
+    assert(proto2.accepts_from(proto1), 'types match')
+
+    proto1 = Furnish::Protocol.new
+    proto2 = Furnish::Protocol.new
+
+    proto1.yields(:bar, "bar", Integer)
+    proto2.accepts(:bar, "bar", Fixnum)
+
+    assert(proto2.accepts_from(proto1), 'Integer is an ancestor of Fixnum')
+
+    proto1 = Furnish::Protocol.new
+    proto2 = Furnish::Protocol.new
+
+    proto1.yields(:bar, "bar", Fixnum)
+    proto2.accepts(:bar, "bar", Integer)
+
+    refute(proto2.accepts_from(proto1), 'Fixnum is not an ancestor of Integer')
+
+    proto1 = Furnish::Protocol.new
+    proto2 = Furnish::Protocol.new
+
+    proto1.yields(:bar, "bar", String)
+    proto2.accepts(:bar, "bar", Integer)
+
+    refute(proto2.accepts_from(proto1), 'completely different types (String/Integer)')
+
+    proto1 = Furnish::Protocol.new
+    proto2 = Furnish::Protocol.new
+
+    proto1.yields(:bar, "bar")
+    proto2.accepts(:bar, "bar", Integer)
+
+    assert(proto2.accepts_from(proto1), 'default type is Object, succeeds with other types')
   end
 end

@@ -36,11 +36,11 @@ module Furnish # :nodoc:
   # in the group, a and b:
   #
   # * if Provisioner A and Provisioner B implement Furnish::Protocol
-  #   * if B requires anything, and A yields all of it
-  #     * if B accepts anything, and A yields any of it
+  #   * if B requires anything, and A yields all of it with the proper types
+  #     * if B accepts anything, and A yields any of it with the proper types
   #       * success
   #     * else failure
-  #   * if B accepts anything, and A yields any of it
+  #   * if B accepts anything, and A yields any of it with the proper types
   #     * success
   #   * if B has #accepts_from_any set to true
   #     * success
@@ -152,9 +152,6 @@ module Furnish # :nodoc:
     #
     # See the logic discussion in Furnish::Protocol for a deeper explanation.
     #
-    #--
-    # FIXME type checking
-    #++
     def requires_from(protocol)
       not_configurable(__method__)
 
@@ -163,7 +160,11 @@ module Furnish # :nodoc:
       yp = protocol[:yields]
       rp = self[:requires]
 
-      rp.keys.empty? || (yp.keys & rp.keys).sort == rp.keys.sort
+      rp.keys.empty? ||
+        (
+          (yp.keys & rp.keys).sort == rp.keys.sort &&
+          rp.keys.all? { |k| rp[k][:type].ancestors.include?(yp[k][:type]) }
+        )
     end
 
     #
@@ -173,9 +174,6 @@ module Furnish # :nodoc:
     #
     # See the logic discussion in Furnish::Protocol for a deeper explanation.
     #
-    #--
-    # FIXME type checking
-    #++
     def accepts_from(protocol)
       not_configurable(__method__)
 
@@ -190,7 +188,7 @@ module Furnish # :nodoc:
         return self[:accepts_from_any]
       end
 
-      return true
+      return (yp.keys & ap.keys).all? { |k| ap[k][:type].ancestors.include?(yp[k][:type]) }
     end
 
     VALIDATOR_NAMES.each do |vname|
