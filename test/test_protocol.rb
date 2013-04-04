@@ -199,5 +199,13 @@ class TestProtocol < Furnish::TestCase
     proto2.accepts(:bar, "bar", Integer)
 
     assert(proto2.accepts_from(proto1), 'default type is Object, succeeds with other types')
+
+    proto1 = Furnish::Protocol.new
+    proto2 = Furnish::Protocol.new
+
+    proto1.yields(:foo, "foo")
+    proto2.accepts(:bar, "bar", Integer)
+
+    refute(proto2.accepts_from(proto1), "nothing accepted is yielded")
   end
 end
