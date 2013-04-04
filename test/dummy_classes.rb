@@ -125,4 +125,3 @@ class SleepyFailingDummy < SleepyDummy
     return false
   end
 end
-
