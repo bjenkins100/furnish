@@ -1,15 +1,6 @@
 require 'helper'
 require 'stringio'
 
-class BadDummy < Furnish::Provisioner::Dummy
-  attr_accessor :name
-
-  # this retardation lets us make it look like furnish_group_name doesn't exist
-  def respond_to?(arg)
-    super unless [:furnish_group_name, :furnish_group_name=].include?(arg)
-  end
-end
-
 class TestDeprecations < Furnish::SchedulerTestCase
   def setup
     super
@@ -19,6 +10,7 @@ class TestDeprecations < Furnish::SchedulerTestCase
   end
 
   def test_name_rename
+    # NOTE this class is defined in test/dummy_classes.rb
     obj = BadDummy.new
     sched.serial = true
     sched.schedule_provision('test1', obj)

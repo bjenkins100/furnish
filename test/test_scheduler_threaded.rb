@@ -1,19 +1,6 @@
 require 'helper'
 
-class SleepyDummy < Dummy
-  def startup(*args)
-    sleep 1
-    super
-  end
-end
-
-class SleepyFailingDummy < SleepyDummy
-  def startup(*args)
-    super
-    return false
-  end
-end
-
+# NOTE the dummy classes in this file are defined in test/dummy_classes.rb
 class TestSchedulerThreaded < Furnish::RestartingSchedulerTestCase
   def setup
     super

@@ -1,5 +1,6 @@
 require 'helper'
 
+# NOTE the dummy classes in this file are defined in test/dummy_classes.rb
 class TestProvisionerGroup < Furnish::TestCase
   def test_constructor
     dummy = Dummy.new

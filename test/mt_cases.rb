@@ -1,35 +1,5 @@
-require 'furnish/provisioners/dummy'
+require 'dummy_classes'
 require 'furnish/test'
-
-Dummy = Furnish::Provisioner::Dummy unless defined? Dummy
-
-class StartFailDummy < Dummy
-  def startup(*args)
-    super
-    false
-  end
-end
-
-class StopFailDummy < Dummy
-  def shutdown
-    super
-    false
-  end
-end
-
-class StartExceptionDummy < Dummy
-  def startup(*args)
-    super
-    raise "ermagherd startup"
-  end
-end
-
-class StopExceptionDummy < Dummy
-  def shutdown(*args)
-    super
-    raise "ermagherd shutdown"
-  end
-end
 
 module Furnish
   class RestartingSchedulerTestCase < SchedulerTestCase

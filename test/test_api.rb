@@ -1,14 +1,9 @@
 require 'helper'
 
-class APIDummy < Furnish::Provisioner::API
-  furnish_property :foo, "does things with foo", Integer
-  furnish_property "a_string"
-  attr_accessor :bar
-end
-
 class TestAPI < Furnish::TestCase
   def setup
     super
+    # NOTE this class is defined in test/dummy_classes.rb
     @klass = APIDummy
   end
 
