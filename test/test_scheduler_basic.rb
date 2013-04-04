@@ -28,4 +28,23 @@ class TestSchedulerBasic < Furnish::SchedulerTestCase
     assert_includes(sched.vm.waiters.keys, 'blarg4', 'included in waiters list')
     assert_includes(sched.vm.dependencies['blarg4'], 'blarg2', 'dependencies are tracked for provision')
   end
+
+  def test_protocol
+    # NOTE these classes are in test/dummy_classes.rb
+    assert(sched.schedule_provision('blarg', [YieldsIntegerBarDummy.new, AcceptsIntegerBarDummy.new]))
+    assert(sched.schedule_provision('blarg1', [YieldsIntegerBarDummy.new, RequiresBarDummy.new]))
+    assert(sched.schedule_provision('blarg2', [YieldsStringBarDummy.new, AcceptsStringBarDummy.new]))
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg3', [YieldsStringBarDummy.new, RequiresBarDummy.new]) }
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg4', [YieldsStringBarDummy.new, AcceptsIntegerBarDummy.new]) }
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg5', [YieldsFooDummy.new, AcceptsIntegerBarDummy.new]) }
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg6', [YieldsFooDummy.new, RequiresBarDummy.new]) }
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg7', [YieldsIntegerBarDummy.new, AcceptsFooDummy.new]) }
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg8', [YieldsStringBarDummy.new, AcceptsFooDummy.new]) }
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg9', [YieldsIntegerBarDummy.new, RequiresBarAcceptsFooDummy.new]) }
+    assert(sched.schedule_provision('blarg10', [YieldsFooBarDummy.new, RequiresBarAcceptsFooDummy.new]))
+    assert(sched.schedule_provision('blarg11', [YieldsFooBarDummy.new, AcceptsFooDummy.new]))
+    assert(sched.schedule_provision('blarg12', [YieldsFooBarDummy.new, AcceptsIntegerBarDummy.new]))
+    assert(sched.schedule_provision('blarg13', [YieldsFooDummy.new, AcceptsFooDummy.new]))
+    assert(sched.schedule_provision('blarg14', [YieldsFooBarDummy.new, RequiresBarDummy.new]))
+  end
 end
