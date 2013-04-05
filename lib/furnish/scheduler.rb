@@ -132,9 +132,12 @@ module Furnish
 
       if install_handler
         handler = lambda do |*args|
-          Furnish.logger.puts ["solved:", vm.solved.to_a].inspect
-          Furnish.logger.puts ["working:", vm.working.to_a].inspect
-          Furnish.logger.puts ["waiting:", vm.waiters.to_a].inspect
+          # XXX See Palsy#with_t and Palsy#no_lock for why this is necessary.
+          Palsy.instance.no_lock do
+            Furnish.logger.puts ["solved:", vm.solved.to_a].inspect
+            Furnish.logger.puts ["working:", vm.working.to_a].inspect
+            Furnish.logger.puts ["waiting:", vm.waiters.to_a].inspect
+          end
         end
 
         %w[USR2 INFO].each { |sig| trap(sig, &handler) if Signal.list[sig] }
