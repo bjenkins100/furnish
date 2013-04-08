@@ -125,3 +125,7 @@ class SleepyFailingDummy < SleepyDummy
     return false
   end
 end
+
+class BrokenRecoverAPIDummy < Dummy
+  allows_recovery
+end

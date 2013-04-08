@@ -58,4 +58,11 @@ class TestAPI < Furnish::TestCase
     refute_equal(APIDummy.new(:foo => 2), APIDummy.new(:foo => 1))
     refute_equal(Dummy.new, StopFailDummy.new)
   end
+
+  def test_recovery
+    prov = APIDummy.new
+    refute(prov.recover(:startup, nil))
+    prov = BrokenRecoverAPIDummy.new
+    assert_raises(NotImplementedError) { prov.recover(:startup, nil) }
+  end
 end
