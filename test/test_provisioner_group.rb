@@ -112,4 +112,18 @@ class TestProvisionerGroup < Furnish::TestCase
     sleep 0.1 # wait for flush
     assert_includes(Furnish.logger.string.split(/\n/), "Deprovision of #{pg.name}[#{dummy.class.name}] had errors:")
   end
+
+  def test_recover
+    pg = Furnish::ProvisionerGroup.new(RecoverableDummy.new, 'recover1')
+    assert_raises(RuntimeError) { pg.startup }
+    assert_equal(0, pg.group_state['index'])
+    assert_equal(:startup, pg.group_state['action'])
+    assert_equal(RecoverableDummy, pg.group_state['provisioner'].class)
+    assert_equal({ }, pg.group_state['provisioner_args'])
+    assert(pg.recover)
+    assert_nil(pg.group_state['index'])
+    assert_nil(pg.group_state['provisioner_args'])
+    assert_nil(pg.group_state['action'])
+    assert_nil(pg.group_state['provisioner'])
+  end
 end

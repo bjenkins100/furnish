@@ -193,6 +193,29 @@ module Furnish
       return true
     end
 
+    def recover
+      index             = @group_state['index']
+      action            = @group_state['action']
+      provisioner       = @group_state['provisioner']
+      provisioner_args  = @group_state['provisioner_args']
+
+      return nil unless action and provisioner and index
+
+      result = false
+
+      if provisioner.class.respond_to?(:allows_recovery?) and provisioner.class.allows_recovery?
+        if provisioner.recover(action, provisioner_args)
+          @start_index        = index
+          @start_provisioner  = provisioner
+          result = send(action, provisioner_args)
+        end
+      end
+
+      @start_index, @start_provisioner = nil, nil
+
+      return result # scheduler will take it from here
+    end
+
     protected
 
     #
@@ -213,12 +236,12 @@ module Furnish
     def check_recovery(prov, index)
       if @start_index and @start_provisioner
         if @start_index == index
-          unless @start_provisioner == prov
+          unless @start_provisioner.class == prov.class
             raise "Provisioner state during recovery is incorrect - something is very wrong"
           end
         end
 
-        return @start_index >= index
+        return @start_index > index
       end
 
       return true

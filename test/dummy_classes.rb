@@ -129,3 +129,40 @@ end
 class BrokenRecoverAPIDummy < Dummy
   allows_recovery
 end
+
+class RecoverableDummy < Dummy
+  allows_recovery
+
+  def startup(*args)
+    super
+    return @recovered
+  end
+
+  def shutdown
+    super
+    return @recovered
+  end
+
+  def recover(state, args)
+    @recovered = true
+    return true
+  end
+end
+
+class FailedRecoverDummy < Dummy
+  allows_recovery
+
+  def startup(*args)
+    super
+    return false
+  end
+
+  def shutdown
+    super
+    return false
+  end
+
+  def recover(state, args)
+    return false
+  end
+end
