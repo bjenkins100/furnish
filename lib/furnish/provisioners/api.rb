@@ -4,7 +4,7 @@ require 'furnish/protocol'
 module Furnish # :nodoc:
   module Provisioner # :nodoc:
     #
-    # API Interface for furnish provisioners. Ideally, you will want to inherit
+    # API base class for furnish provisioners. Ideally, you will want to inherit
     # from this and supply your overrides. Nothing in furnish expects this
     # class to be used by your provisioners, this just lets you save some
     # trouble. That said, all methods in this class are expected to be
