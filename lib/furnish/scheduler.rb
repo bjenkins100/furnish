@@ -464,6 +464,7 @@ module Furnish
     # any threads managing it.
     #
     def delete_group(group_name)
+      vm.need_recovery.delete(group_name)
       vm.solved.delete(group_name)
       vm.sync_waiters do |waiters|
         waiters.delete(group_name)
