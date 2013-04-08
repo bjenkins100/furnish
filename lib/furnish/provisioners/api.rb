@@ -347,6 +347,14 @@ module Furnish # :nodoc:
         name = furnish_group_name || "unknown"
         "#{name}[#{self.class.name}]"
       end
+
+      def ==(other)
+        self.hash == other.hash
+      end
+
+      def hash
+        Marshal.dump(instance_variables.sort.map { |x| instance_variable_get(x) } + [self.class])
+      end
     end
   end
 end

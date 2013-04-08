@@ -51,4 +51,11 @@ class TestAPI < Furnish::TestCase
     obj.furnish_group_name = "frobnik"
     assert_equal("frobnik[#{@klass.name}]", obj.to_s, "formatted properly without a furnish group name")
   end
+
+  def test_equality
+    assert_equal(Dummy.new, Dummy.new)
+    assert_equal(APIDummy.new(:foo => 1), APIDummy.new(:foo => 1))
+    refute_equal(APIDummy.new(:foo => 2), APIDummy.new(:foo => 1))
+    refute_equal(Dummy.new, StopFailDummy.new)
+  end
 end
