@@ -348,12 +348,22 @@ module Furnish # :nodoc:
         "#{name}[#{self.class.name}]"
       end
 
+      alias inspect to_s # FIXME make this less stupid later
+
       def ==(other)
         self.hash == other.hash
       end
 
       def hash
-        Marshal.dump(instance_variables.sort.map { |x| instance_variable_get(x) } + [self.class])
+        Marshal.dump(
+          instance_variables.sort.map do |x|
+            y = instance_variable_get(x)
+            y.kind_of?(String) ?
+              y.encode("UTF-8", :invalid => :replace, :replace => "?".chr) :
+              y
+          end +
+          [self.class]
+        )
       end
     end
   end
