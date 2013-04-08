@@ -39,9 +39,10 @@ class TestProvisionerGroup < Furnish::TestCase
 
     dummy = StartFailDummy.new
     pg = Furnish::ProvisionerGroup.new(dummy, 'blarg2')
-    assert_raises(RuntimeError, "Could not provision #{pg.name} with provisioner #{dummy.class.name}") { pg.startup }
+    assert_raises(RuntimeError, "Could not provision #{pg.name} with provisioner #{dummy.class.name}") { pg.startup({ :foo => 1 }) }
     assert_equal(:startup, pg.group_state['action'])
     assert_equal(dummy.class, pg.group_state['provisioner'].class)
+    assert_equal({:foo => 1}, pg.group_state['provisioner_args'])
 
     dummy = StopFailDummy.new
     pg = Furnish::ProvisionerGroup.new(dummy, 'blarg3')
