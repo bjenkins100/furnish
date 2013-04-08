@@ -2,6 +2,7 @@ require 'dummy_classes'
 require 'furnish/test'
 
 module Furnish
+  # These tests are run for both threaded and serial cases.
   class RestartingSchedulerTestCase < SchedulerTestCase
     def teardown
       sched.stop

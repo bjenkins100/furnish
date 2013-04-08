@@ -141,7 +141,8 @@ class RecoverableDummy < Dummy
 
   def shutdown
     super
-    return run_state[__method__] = @recovered
+    run_state[__method__] = @recovered
+    return @recovered
   end
 
   def recover(state, args)
