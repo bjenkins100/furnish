@@ -171,12 +171,12 @@ module Furnish
         begin
           success = perform_deprovision(this_prov) || force
         rescue Exception => e
-          if force
-            if_debug do
-              puts "Deprovision of #{this_prov} had errors:"
-              puts "#{e.message}"
-            end
-          else
+          if_debug do
+            puts "Deprovision of #{this_prov} had errors:"
+            puts "#{e.message}"
+          end
+
+          unless force
             set_recovery(this_prov, i)
             raise e
           end
