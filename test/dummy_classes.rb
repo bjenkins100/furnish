@@ -135,12 +135,13 @@ class RecoverableDummy < Dummy
 
   def startup(*args)
     super
+    run_state[__method__] = @recovered
     return @recovered
   end
 
   def shutdown
     super
-    return @recovered
+    return run_state[__method__] = @recovered
   end
 
   def recover(state, args)
@@ -154,12 +155,14 @@ class RaisingRecoverableDummy < Dummy
 
   def startup(*args)
     super
+    run_state[__method__] = @recovered
     raise unless @recovered
     return @recovered
   end
 
   def shutdown
     super
+    run_state[__method__] = @recovered
     raise unless @recovered
     return @recovered
   end
@@ -175,15 +178,15 @@ class FailedRecoverDummy < Dummy
 
   def startup(*args)
     super
-    return false
+    return run_state[__method__] = false
   end
 
   def shutdown
     super
-    return false
+    return run_state[__method__] = false
   end
 
   def recover(state, args)
-    return false
+    return run_state[__method__] = false
   end
 end

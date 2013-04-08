@@ -33,7 +33,7 @@ module Furnish
       end
 
       def run_state
-        @run_state ||= Palsy::Map.new('dummy_run_state', respond_to?(:furnish_group_name) ? furnish_group_name : name)
+        @run_state ||= Palsy::Map.new('dummy_run_state', [self.class.name, respond_to?(:furnish_group_name) ? furnish_group_name : name].join("-"))
       end
 
       #
@@ -60,7 +60,7 @@ module Furnish
       def startup(*args)
         @persist = "floop"
         do_delegate(__method__) do
-          true
+          run_state[__method__] = true
         end
       end
 
@@ -69,7 +69,7 @@ module Furnish
       #
       def shutdown
         do_delegate(__method__) do
-          true
+          run_state[__method__] = true
         end
       end
 
@@ -85,14 +85,7 @@ module Furnish
         @order.push(furnish_group_name)
         call_order.push(id || "unknown")
 
-        result = yield
-
-        #
-        # FIXME encode is needed for issue #2 in palsy
-        #
-        run_state[meth_name.encode('UTF-8')] = result
-
-        return result
+        yield
       end
     end
   end

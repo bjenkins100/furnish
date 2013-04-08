@@ -203,11 +203,44 @@ module Furnish
 
       result = false
 
-      if provisioner.class.respond_to?(:allows_recovery?) and provisioner.class.allows_recovery?
-        if provisioner.recover(action, provisioner_args)
+      #
+      # The next few lines here work around mutable state needing to happen in
+      # the original provisioner, but since the one we looked up will actually
+      # not be the same object, we need to deal with that by dispatching
+      # recovery to the actual provisioner object in the group.
+      #
+      # The one stored is still useful for informational and validation
+      # purposes, but the index is the ultimate authority.
+      #
+      offset = case action
+               when :startup
+                 index
+               when :shutdown
+                 size - 1 - index
+               else
+                 raise "Wtf?"
+               end
+
+      orig_prov = self[offset]
+
+      unless orig_prov.class == provisioner.class
+        raise "index and provisioner data don't seem to agree"
+      end
+
+      if orig_prov.class.respond_to?(:allows_recovery?) and orig_prov.class.allows_recovery?
+        if orig_prov.recover(action, provisioner_args)
           @start_index        = index
-          @start_provisioner  = provisioner
-          result = send(action, provisioner_args)
+          @start_provisioner  = orig_prov
+
+          # FIXME fix this with shutdown protocol fixes
+          result = case action
+                   when :startup
+                     startup(provisioner_args)
+                   when :shutdown
+                     shutdown
+                   else
+                     raise "Wtf?"
+                   end
         end
       end
 
@@ -241,7 +274,7 @@ module Furnish
           end
         end
 
-        return @start_index > index
+        return index >= @start_index
       end
 
       return true

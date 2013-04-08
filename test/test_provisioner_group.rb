@@ -115,7 +115,7 @@ class TestProvisionerGroup < Furnish::TestCase
 
   def test_recover
     [ RecoverableDummy, RaisingRecoverableDummy ].each do |prov|
-      pg = Furnish::ProvisionerGroup.new(prov.new, 'recover1')
+      pg = Furnish::ProvisionerGroup.new(prov.new, "#{prov.name}-recover1")
       assert_raises(RuntimeError) { pg.startup }
       assert_equal(0, pg.group_state['index'])
       assert_equal(:startup, pg.group_state['action'])
@@ -126,12 +126,9 @@ class TestProvisionerGroup < Furnish::TestCase
       assert_nil(pg.group_state['provisioner_args'])
       assert_nil(pg.group_state['action'])
       assert_nil(pg.group_state['provisioner'])
-      #
-      # FIXME encode is needed for issue #2 in palsy
-      #
-      assert(pg.first.run_state['startup'.encode('UTF-8')])
+      assert(pg.first.run_state[:startup])
 
-      pg = Furnish::ProvisionerGroup.new(prov.new, 'recover2')
+      pg = Furnish::ProvisionerGroup.new(prov.new, "#{prov.name}-recover2")
       assert_raises(RuntimeError) { pg.shutdown }
       assert_equal(0, pg.group_state['index'])
       assert_equal(:shutdown, pg.group_state['action'])
@@ -142,10 +139,71 @@ class TestProvisionerGroup < Furnish::TestCase
       assert_nil(pg.group_state['provisioner_args'])
       assert_nil(pg.group_state['action'])
       assert_nil(pg.group_state['provisioner'])
-      #
-      # FIXME encode is needed for issue #2 in palsy
-      #
-      assert(pg.first.run_state['shutdown'.encode('UTF-8')])
+      assert(pg.first.run_state[:shutdown])
+
+      pg = Furnish::ProvisionerGroup.new([Dummy.new, prov.new], "#{prov.name}-recover3")
+      assert_raises(RuntimeError) { pg.startup }
+      assert_equal(1, pg.group_state['index'])
+      assert_equal(:startup, pg.group_state['action'])
+      assert_equal(prov, pg.group_state['provisioner'].class)
+      assert(pg.group_state['provisioner_args'])
+      assert(pg.first.run_state[:startup])
+      refute(pg.last.run_state[:startup])
+      assert(pg.recover)
+      assert_nil(pg.group_state['index'])
+      assert_nil(pg.group_state['provisioner_args'])
+      assert_nil(pg.group_state['action'])
+      assert_nil(pg.group_state['provisioner'])
+      assert(pg.last.run_state[:startup])
+
+      pg = Furnish::ProvisionerGroup.new([Dummy.new, prov.new], "#{prov.name}-recover4")
+      assert_raises(RuntimeError) { pg.shutdown }
+      assert_equal(0, pg.group_state['index'])
+      assert_equal(:shutdown, pg.group_state['action'])
+      assert_equal(prov, pg.group_state['provisioner'].class)
+      assert_nil(pg.group_state['provisioner_args'])
+      refute(pg.first.run_state[:shutdown])
+      refute(pg.last.run_state[:shutdown])
+      assert(pg.recover)
+      assert_nil(pg.group_state['index'])
+      assert_nil(pg.group_state['provisioner_args'])
+      assert_nil(pg.group_state['action'])
+      assert_nil(pg.group_state['provisioner'])
+
+      assert(pg.first.run_state[:shutdown])
+      assert(pg.last.run_state[:shutdown])
+
+      pg = Furnish::ProvisionerGroup.new([prov.new, Dummy.new], "#{prov.name}-recover5")
+      assert_raises(RuntimeError) { pg.startup }
+      assert_equal(0, pg.group_state['index'])
+      assert_equal(:startup, pg.group_state['action'])
+      assert_equal(prov, pg.group_state['provisioner'].class)
+      assert_equal({ }, pg.group_state['provisioner_args'])
+      refute(pg.first.run_state[:startup])
+      refute(pg.last.run_state[:startup])
+      assert(pg.recover)
+      assert_nil(pg.group_state['index'])
+      assert_nil(pg.group_state['provisioner_args'])
+      assert_nil(pg.group_state['action'])
+      assert_nil(pg.group_state['provisioner'])
+      assert(pg.first.run_state[:startup])
+      assert(pg.last.run_state[:startup])
+
+      pg = Furnish::ProvisionerGroup.new([prov.new, Dummy.new], "#{prov.name}-recover6")
+      assert_raises(RuntimeError) { pg.shutdown }
+      assert_equal(1, pg.group_state['index'])
+      assert_equal(:shutdown, pg.group_state['action'])
+      assert_equal(prov, pg.group_state['provisioner'].class)
+      assert_nil(pg.group_state['provisioner_args'])
+      refute(pg.first.run_state[:shutdown])
+      assert(pg.last.run_state[:shutdown])
+      assert(pg.recover)
+      assert_nil(pg.group_state['index'])
+      assert_nil(pg.group_state['provisioner_args'])
+      assert_nil(pg.group_state['action'])
+      assert_nil(pg.group_state['provisioner'])
+      assert(pg.first.run_state[:shutdown])
+      assert(pg.last.run_state[:shutdown])
     end
   end
 end
