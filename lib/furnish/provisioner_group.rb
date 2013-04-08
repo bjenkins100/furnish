@@ -60,15 +60,7 @@ module Furnish
       end
 
       provisioners.each do |prov|
-        if prov.respond_to?(:furnish_group_name=)
-          prov.furnish_group_name = furnish_group_name
-        else
-          if_debug(0) do
-            puts "Provisioner #{prov.class.name} is using a deprecated API by providing #name as an accessor for use by Furnish."
-            puts "Please adjust to use #furnish_group_name instead, or inherit from Furnish::Provisioner::API which will deal with this for you."
-          end
-          prov.name = furnish_group_name
-        end
+        prov.furnish_group_name = furnish_group_name
       end
 
       @name         = furnish_group_name
