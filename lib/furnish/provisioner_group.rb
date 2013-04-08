@@ -123,13 +123,10 @@ module Furnish
     #
     def startup(args={})
       @group_state['action'] = :startup
-      @group_state['index']  = -1
 
-      each do |this_prov|
-
-        @group_state['index'] += 1
-        @group_state['provisioner'] = this_prov
-        @group_state['provisioner_args'] = args
+      each_with_index do |this_prov, i|
+        next unless check_recovery(this_prov, i)
+        set_recovery(this_prov, i, args)
 
         unless args = this_prov.startup(args)
           if_debug do
@@ -161,14 +158,12 @@ module Furnish
     #
     def shutdown(force=false)
       @group_state['action'] = :shutdown
-      @group_state['index']  = -1
 
-      reverse.each do |this_prov|
+      reverse.each_with_index do |this_prov, i|
+        next unless check_recovery(this_prov, i)
+        set_recovery(this_prov, i)
+
         success = false
-
-        @group_state['index'] += 1
-        @group_state['provisioner'] = this_prov
-        @group_state['provisioner_args'] = nil
 
         begin
           success = perform_deprovision(this_prov) || force
@@ -194,6 +189,35 @@ module Furnish
     end
 
     protected
+
+    #
+    # Similar to #clean_state, a helper for recovery tracking
+    #
+
+    def set_recovery(prov, index, args=nil)
+      @group_state['provisioner'] = prov
+      @group_state['index'] = index
+      @group_state['provisioner_args'] = args
+    end
+
+    #
+    # Returns false if this provision is to be skipped, controlled by #recover.
+    #
+    # Raises if something really goes wrong.
+    #
+    def check_recovery(prov, index)
+      if @start_index and @start_provisioner
+        if @start_index == index
+          unless @start_provisioner == prov
+            raise "Provisioner state during recovery is incorrect - something is very wrong"
+          end
+        end
+
+        return @start_index >= index
+      end
+
+      return true
+    end
 
     #
     # cleanup the group state after a group operation.
