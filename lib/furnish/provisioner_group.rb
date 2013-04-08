@@ -46,7 +46,7 @@ module Furnish
     # objects will be validated during the construction of the group.
     #
     def initialize(provisioners, furnish_group_name, dependencies=[])
-      @group_state = Palsy::Object.new('vm_group_state', furnish_group_name)
+      @group_state = Palsy::Map.new('vm_group_state', furnish_group_name)
 
       #
       # FIXME maybe move the naming construct to here instead of populating it
