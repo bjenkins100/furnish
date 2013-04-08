@@ -40,20 +40,32 @@ class TestProvisionerGroup < Furnish::TestCase
     dummy = StartFailDummy.new
     pg = Furnish::ProvisionerGroup.new(dummy, 'blarg2')
     assert_raises(RuntimeError, "Could not provision #{pg.name} with provisioner #{dummy.class.name}") { pg.startup }
+    assert_equal(:startup, pg.group_state['action'])
+    assert_equal(dummy.class, pg.group_state['provisioner'].class)
 
     dummy = StopFailDummy.new
     pg = Furnish::ProvisionerGroup.new(dummy, 'blarg3')
     assert_raises(RuntimeError, "Could not deprovision #{pg.name}/#{dummy.class.name}") { pg.shutdown }
+    assert_equal(:shutdown, pg.group_state['action'])
+    assert_equal(dummy.class, pg.group_state['provisioner'].class)
     pg.shutdown(true)
+    assert_nil(pg.group_state['action'])
+    assert_nil(pg.group_state['provisioner'])
 
     dummy = StartExceptionDummy.new
     pg = Furnish::ProvisionerGroup.new(dummy, 'blarg4')
     assert_raises(RuntimeError, "Could not provision #{pg.name} with provisioner #{dummy.class.name}") { pg.startup }
+    assert_equal(:startup, pg.group_state['action'])
+    assert_equal(dummy.class, pg.group_state['provisioner'].class)
 
     dummy = StopExceptionDummy.new
     pg = Furnish::ProvisionerGroup.new(dummy, 'blarg4')
     assert_raises(RuntimeError, "Could not deprovision #{pg.name}/#{dummy.class.name}") { pg.shutdown }
+    assert_equal(:shutdown, pg.group_state['action'])
+    assert_equal(dummy.class, pg.group_state['provisioner'].class)
     pg.shutdown(true)
+    assert_nil(pg.group_state['action'])
+    assert_nil(pg.group_state['provisioner'])
     sleep 0.1 # wait for flush
     assert_includes(Furnish.logger.string.split(/\n/), "Deprovision of #{pg.name}[#{dummy.class.name}] had errors:")
   end

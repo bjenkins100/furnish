@@ -28,6 +28,8 @@ module Furnish
     attr_reader :name
     # The list of names the group depends on.
     attr_reader :dependencies
+    # group state object. should not be used outside of internals.
+    attr_reader :group_state
 
     #
     # Create a new Provisioner group.
@@ -138,7 +140,7 @@ module Furnish
         yield self if block_given?
       end
 
-      @group_state.delete('action')
+      clean_state
 
       return true
     end
@@ -182,12 +184,21 @@ module Furnish
         end
       end
 
-      @group_state.delete('action')
+      clean_state
 
       return true
     end
 
     protected
+
+    #
+    # cleanup the group state after a group operation.
+    #
+    def clean_state
+      @group_state.delete('action')
+      @group_state.delete('provisioner')
+      @group_state.delete('provisioner_args')
+    end
 
     #
     # Just a way to simplify the deprovisioning logic with some generic logging.
