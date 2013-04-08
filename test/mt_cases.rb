@@ -175,7 +175,7 @@ module Furnish
           sched.stop
           sleep 0.1 # wait for any writes to complete
 
-          %w[solved working waiting].each do |section|
+          %w[solved working waiting provisioning].each do |section|
             refute_match(/#{section}/, File.read(tf.path), "#{signal} yielded no output with the #{section} set")
           end
 
@@ -186,7 +186,7 @@ module Furnish
           sched.stop
           sleep 0.1 # wait for any writes to complete
 
-          %w[solved working waiting].each do |section|
+          %w[solved working waiting provisioning].each do |section|
             assert_match(/#{section}/, File.read(tf.path), "#{signal} yielded output with the #{section} set")
           end
         end

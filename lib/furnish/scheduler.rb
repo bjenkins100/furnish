@@ -419,6 +419,7 @@ module Furnish
           Furnish.logger.puts ["solved:", vm.solved.to_a].inspect
           Furnish.logger.puts ["working:", vm.working.to_a].inspect
           Furnish.logger.puts ["waiting:", vm.waiters.to_a].inspect
+          Furnish.logger.puts ["provisioning:", vm.working.to_a.map { |w| [w, vm.groups[w].group_state['action'], groups[w].group_state['provisioner']] }]
         end
       end
 
