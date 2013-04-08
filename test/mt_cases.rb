@@ -30,13 +30,12 @@ module Furnish
         sched.s(test2, prov.new)
         sched.run rescue nil # FIXME oof. maybe move this to indepedent tests for serial mode?
         assert(sched.serial || sched.running?)
-        refute_solved(test2)
         unless sched.serial
           sleep 0.1 while !sched.needs_recovery.has_key?(test2)
         end
         assert(sched.needs_recovery?)
-        refute_solved(test2)
         assert_includes(sched.needs_recovery.keys, test2)
+        refute_solved(test2)
         sched.s(test3, Dummy.new, [test2])
         refute_solved(test3)
         assert(sched.serial || sched.running?)
@@ -49,6 +48,55 @@ module Furnish
         assert_started(test2)
         assert_started(test3)
         assert_started(test1)
+        sched.teardown
+        sched.stop
+
+        test4 = "#{prov}-test4"
+        test5 = "#{prov}-test5"
+
+        [test1, test2, test3, test4, test5].each { |x| x.replace(x + "-permfail") }
+
+        sched.s(test1, Dummy.new)
+        sched.s(test2, prov.new)
+        sched.s(test3, Dummy.new, [test2])
+        sched.s(test4, FailedRecoverDummy.new)
+        sched.s(test5, Dummy.new, [test4])
+        sched.run rescue nil
+        sched.run rescue nil
+        assert(sched.serial || sched.running?)
+        unless sched.serial
+          sleep 0.1 while !sched.needs_recovery.has_key?(test2)
+          sleep 0.1 while !sched.needs_recovery.has_key?(test4)
+        end
+        assert(sched.needs_recovery?)
+        refute_solved(test2)
+        refute_solved(test3)
+        refute_solved(test4)
+        assert(sched.serial || sched.running?)
+        assert_equal({ test4 => false }, sched.recover)
+        assert(sched.serial || sched.running?)
+        if sched.serial
+          sched.run rescue nil
+        end
+        sched.wait_for(test1, test2, test3)
+        assert_started(test2)
+        assert_started(test3)
+        assert_started(test1)
+        refute_solved(test4)
+        refute_solved(test5)
+        sched.force_deprovision = true
+        sched.deprovision_group(test4)
+        sched.force_deprovision = false
+        refute_includes(sched.needs_recovery.keys, test4)
+        refute(sched.needs_recovery?)
+        sched.s(test4, Dummy.new)
+        if sched.serial
+          sched.run
+        end
+        assert(sched.serial || sched.running?)
+        sched.wait_for(test4, test5)
+        assert_solved(test4) # we tore it down, so assert_started will break here.
+        assert_started(test5)
         sched.teardown
         sched.stop
       end
