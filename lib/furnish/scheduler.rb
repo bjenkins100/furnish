@@ -128,7 +128,7 @@ module Furnish
     #
     def run(install_handler=true)
       # short circuit if we're not serial and already running
-      return if @solver_thread and !@serial
+      return if running?
 
       if install_handler
         handler = lambda do |*args|
