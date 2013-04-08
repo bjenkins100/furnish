@@ -123,9 +123,11 @@ module Furnish
     #
     def startup(args={})
       @group_state['action'] = :startup
+      @group_state['index']  = -1
 
       each do |this_prov|
 
+        @group_state['index'] += 1
         @group_state['provisioner'] = this_prov
         @group_state['provisioner_args'] = args
 
@@ -159,10 +161,12 @@ module Furnish
     #
     def shutdown(force=false)
       @group_state['action'] = :shutdown
+      @group_state['index']  = -1
 
       reverse.each do |this_prov|
         success = false
 
+        @group_state['index'] += 1
         @group_state['provisioner'] = this_prov
         @group_state['provisioner_args'] = nil
 
@@ -195,6 +199,7 @@ module Furnish
     # cleanup the group state after a group operation.
     #
     def clean_state
+      @group_state.delete('index')
       @group_state.delete('action')
       @group_state.delete('provisioner')
       @group_state.delete('provisioner_args')
