@@ -116,6 +116,52 @@ module Furnish # :nodoc:
       end
 
       #
+      # Indicate whether or not this Provisioner allows recovery functions.
+      # Will be used in recovery mode to determine whether or not to
+      # automatically deprovision the group, or attempt to recover the group
+      # provision.
+      #
+      # Recovery (the feature) is defaulted to false, but calling this method
+      # with no arguments will turn it on (i.e., set it to true). You may also
+      # provide a boolean argument if you wish to turn it off.
+      #
+      # Note that if you turn this on, you must also define a #recover state
+      # method which implements your recovery routines. If you turn it on and
+      # do not define the #recover routine, NotImplementedError will be raised
+      # during recovery.
+      #
+      # Usage:
+      #
+      #     # turn it on
+      #     class MyProv < API
+      #       allows_recovery
+      #     end
+      #
+      #     # turn it off explicitly
+      #     class MyProv < API
+      #       allows_recovery false
+      #     end
+      #
+      #     # not specifying means it's off.
+      #     class MyProv < API
+      #       ...
+      #     end
+      #
+      def self.allows_recovery(val=true)
+        @allows_recovery = val
+      end
+
+      #
+      # Predicate to determine if this provisioner supports recovery or not.
+      #
+      # Please see API.allows_recovery and #recover for more information.
+      #
+      def self.allows_recovery?
+        @allows_recovery ||= false
+        @allows_recovery
+      end
+
+      #
       # This contains the Furnish::Protocol configuration for startup (aka
       # provisioning) state execution. See API.configure_startup for more
       # information.
@@ -232,6 +278,46 @@ module Furnish # :nodoc:
       #
       def shutdown
         raise NotImplementedError, "shutdown method not implemented for #{self.class.name}"
+      end
+
+      #
+      # Initiate recovery. This is an optional state transition, and if
+      # unavailable will assume recovery is not possible. Inheriting from this
+      # class provides this and therefore will always be available. See
+      # API.allows_recovery for information on how to control this feature in
+      # your provisioner. If recovery is possible in your provisioner and you
+      # have not defined a working recover method of your own,
+      # NotImplementedError will be raised.
+      #
+      # recover takes two arguments, the desired state and the arguments passed
+      # during the initial attempt at state transition: for example, `:startup`
+      # and a hash that conforms to Furnish::Protocol definitions.
+      #
+      # recover is expected to return true if recovery was successful, and
+      # false if it was not. If successful, the original state will be invoked
+      # with its original arguments, just like it was receiving the transition
+      # for the first time. Therefore, for recover to be successful, it should
+      # clean up any work the state has already done.
+      #
+      # In the event recovery is not possible (the recover routine returns
+      # false), depending on how the scheduler is configured, the group will
+      # either deprovision itself or halt the scheduler again, forcing the code
+      # to handle recovery manually.
+      #
+      # Example: a provisioner for a security group crashes during running
+      # startup. The scheduler pauses, and is instructed to go into recovery
+      # mode. The method #recover is called, which then cleans up the security
+      # group attempted to be created (if it does not exist, that's fine too).
+      # Then, it returns true. Then the scheduler will retry the startup
+      # routine for the security group, which will attempt the same thing as if
+      # it has never tried to begin with.
+      #
+      def recover(state, args)
+        if self.class.allows_recovery?
+          raise NotImplementedError, "#{self.class} allows recovery but no #recover method was defined."
+        else
+          return false
+        end
       end
 
       #
