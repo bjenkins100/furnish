@@ -128,11 +128,14 @@ module Furnish
         next unless check_recovery(this_prov, i)
         set_recovery(this_prov, i, args)
 
-        unless args = this_prov.startup(args)
+        startup_args = args
+
+        unless args = this_prov.startup(startup_args)
           if_debug do
             puts "Could not provision #{this_prov}"
           end
 
+          set_recovery(this_prov, i, startup_args)
           raise "Could not provision #{this_prov}"
         end
 
@@ -174,11 +177,13 @@ module Furnish
               puts "#{e.message}"
             end
           else
+            set_recovery(this_prov, i)
             raise e
           end
         end
 
         unless success or force
+          set_recovery(this_prov, i)
           raise "Could not deprovision #{this_prov}"
         end
       end
