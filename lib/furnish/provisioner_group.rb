@@ -44,6 +44,8 @@ module Furnish
     # objects will be validated during the construction of the group.
     #
     def initialize(provisioners, furnish_group_name, dependencies=[])
+      @group_state = Palsy::Object.new('vm_group_state', furnish_group_name)
+
       #
       # FIXME maybe move the naming construct to here instead of populating it
       #       out to the provisioners
@@ -117,8 +119,14 @@ module Furnish
     # If a block is provided, will yield self to it for each step through the
     # group.
     #
-    def startup(*args)
+    def startup(args={})
+      @group_state['action'] = :startup
+
       each do |this_prov|
+
+        @group_state['provisioner'] = this_prov
+        @group_state['provisioner_args'] = args
+
         unless args = this_prov.startup(args)
           if_debug do
             puts "Could not provision #{this_prov}"
@@ -129,6 +137,8 @@ module Furnish
 
         yield self if block_given?
       end
+
+      @group_state.delete('action')
 
       return true
     end
@@ -146,8 +156,13 @@ module Furnish
     # information on how to use this externally.
     #
     def shutdown(force=false)
+      @group_state['action'] = :shutdown
+
       reverse.each do |this_prov|
         success = false
+
+        @group_state['provisioner'] = this_prov
+        @group_state['provisioner_args'] = nil
 
         begin
           success = perform_deprovision(this_prov) || force
@@ -166,6 +181,10 @@ module Furnish
           raise "Could not deprovision #{this_prov}"
         end
       end
+
+      @group_state.delete('action')
+
+      return true
     end
 
     protected
