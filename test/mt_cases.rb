@@ -20,6 +20,40 @@ module Furnish
       assert(provisioner.store[ [name, "shutdown"].join("-") ], "dummy provisioner for #{name} recorded the shutdown run")
     end
 
+    def test_recovery_mode
+      [RecoverableDummy, RaisingRecoverableDummy].each do |prov|
+        test1 = "#{prov}-test1"
+        test2 = "#{prov}-test2"
+        test3 = "#{prov}-test3"
+
+        sched.s(test1, Dummy.new)
+        sched.s(test2, prov.new)
+        sched.run rescue nil # FIXME oof. maybe move this to indepedent tests for serial mode?
+        assert(sched.serial || sched.running?)
+        refute_solved(test2)
+        unless sched.serial
+          sleep 0.1 while !sched.needs_recovery.has_key?(test2)
+        end
+        assert(sched.needs_recovery?)
+        refute_solved(test2)
+        assert_includes(sched.needs_recovery.keys, test2)
+        sched.s(test3, Dummy.new, [test2])
+        refute_solved(test3)
+        assert(sched.serial || sched.running?)
+        assert_empty(sched.recover)
+        assert(sched.serial || sched.running?)
+        if sched.serial
+          sched.run rescue nil
+        end
+        sched.wait_for(test1, test2, test3)
+        assert_started(test2)
+        assert_started(test3)
+        assert_started(test1)
+        sched.teardown
+        sched.stop
+      end
+    end
+
     def test_run_tracking
       #--
       # This is a tad convoluted. Dummy's startup method sets an ivar which
