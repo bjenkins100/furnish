@@ -192,7 +192,13 @@ module Furnish
       end
 
       if @serial
-        queue_loop
+        begin
+          queue_loop
+        rescue => e
+          if_debug do
+            puts "During recovery, serial mode, encoutered: #{e}: #{e.message}"
+          end
+        end
       end
 
       @recovering = false
