@@ -92,17 +92,26 @@ module Furnish
       yielding = iterator.shift
 
       while accepting = iterator.shift
-        y_proto = yielding.class.startup_protocol rescue nil
-        a_proto = accepting.class.startup_protocol rescue nil
+        y_class = yielding.class
+        a_class = accepting.class
 
-        if y_proto and a_proto
-          unless a_proto.requires_from(y_proto)
-            raise ArgumentError, "#{accepting.class} requires information during startup that #{yielding.class} does not yield"
-          end
+        unless y_class.respond_to?(:startup_protocol)
+          raise ArgumentError, "#{y_class} does not implement Furnish::Provisioner::API -- cannot continue"
+        end
 
-          unless a_proto.accepts_from(y_proto)
-            raise ArgumentError, "#{accepting.class} expects information during startup from #{yielding.class} that will not be delivered"
-          end
+        unless a_class.respond_to?(:startup_protocol)
+          raise ArgumentError, "#{a_class} does not implement Furnish::Provisioner::API -- cannot continue"
+        end
+
+        y_proto = y_class.startup_protocol
+        a_proto = a_class.startup_protocol
+
+        unless a_proto.requires_from(y_proto)
+          raise ArgumentError, "#{accepting.class} requires information during startup that #{yielding.class} does not yield"
+        end
+
+        unless a_proto.accepts_from(y_proto)
+          raise ArgumentError, "#{accepting.class} expects information during startup from #{yielding.class} that will not be delivered"
         end
 
         yielding = accepting
@@ -137,6 +146,11 @@ module Furnish
 
           set_recovery(this_prov, i, startup_args)
           raise "Could not provision #{this_prov}"
+        end
+
+        unless args.kind_of?(Hash)
+          raise ArgumentError,
+            "#{this_prov.class} does not return data that can be consumed by the next provisioner"
         end
 
         yield self if block_given?

@@ -255,13 +255,14 @@ module Furnish # :nodoc:
       # Arguments will come from the return values of the previous
       # provisioner's startup or nothing if this is the first provisioner.
       # Return value is expected to be false if the provision failed in a
-      # non-exceptional way, or a set of values for the next provisioner if
-      # successful.
+      # non-exceptional way, or a hash of values for the next provisioner if
+      # successful. See Furnish::Protocol for more information of what truthy
+      # values should look like.
       #
       # The routine in this base class will raise NotImplementedError,
       # expecting you to override it in your provisioner.
       #
-      def startup(*args)
+      def startup(args={})
         raise NotImplementedError, "startup method not implemented for #{self.class.name}"
       end
 

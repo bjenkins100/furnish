@@ -51,14 +51,14 @@ class TestProvisionerGroup < Furnish::TestCase
     assert_equal(1, pg.group_state['index'])
     assert_equal(:startup, pg.group_state['action'])
     assert_equal(StartFailDummy, pg.group_state['provisioner'].class)
-    assert_equal(true, pg.group_state['provisioner_args'])
+    assert_equal({}, pg.group_state['provisioner_args'])
 
     pg = Furnish::ProvisionerGroup.new([Dummy.new, StartExceptionDummy.new], 'track_test')
     assert_raises(RuntimeError, "Could not provision #{pg.name} with provisioner #{dummy.class.name}") { pg.startup({ :foo => 1 }) }
     assert_equal(1, pg.group_state['index'])
     assert_equal(:startup, pg.group_state['action'])
     assert_equal(StartExceptionDummy, pg.group_state['provisioner'].class)
-    assert_equal(true, pg.group_state['provisioner_args'])
+    assert_equal({}, pg.group_state['provisioner_args'])
 
     pg = Furnish::ProvisionerGroup.new([StopFailDummy.new, Dummy.new], 'track_test')
     assert_raises(RuntimeError, "Could not deprovision #{pg.name}/#{dummy.class.name}") { pg.shutdown }

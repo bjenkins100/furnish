@@ -57,10 +57,10 @@ module Furnish
       #
       # startup shim
       #
-      def startup(*args)
+      def startup(args={ })
         @persist = "floop"
         do_delegate(__method__) do
-          run_state[__method__] = true
+          run_state[__method__] = { }
         end
       end
 
@@ -69,7 +69,7 @@ module Furnish
       #
       def shutdown
         do_delegate(__method__) do
-          run_state[__method__] = true
+          run_state[__method__] = { }
         end
       end
 
