@@ -168,7 +168,8 @@ module Furnish
           tempfiles.push(tf)
           Furnish.logger = Furnish::Logger.new(tf)
 
-          sched.run(false)
+          sched.signal_handler = false
+          sched.run
           Process.kill(signal, Process.pid)
 
           sched.stop
@@ -178,7 +179,8 @@ module Furnish
             refute_match(/#{section}/, File.read(tf.path), "#{signal} yielded no output with the #{section} set")
           end
 
-          sched.run(true)
+          sched.signal_handler = true
+          sched.run
           Process.kill(signal, Process.pid)
 
           sched.stop

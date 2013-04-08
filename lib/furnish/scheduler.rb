@@ -32,6 +32,17 @@ module Furnish
     #
     attr_accessor :force_deprovision
 
+    ##
+    #
+    # When true, calling #run or #recover also installs a SIGINFO (Ctrl+T in the
+    # terminal on macs) and SIGUSR2 handler which can be used to get
+    # information on the status of what's solved and what's working.
+    #
+    # Default is true.
+    #
+
+    attr_accessor :signal_handler
+
     #
     # Instantiate the Scheduler.
     #
@@ -43,6 +54,7 @@ module Furnish
       @working_threads    = { }
       @queue              = Queue.new
       @vm                 = Furnish::VM.new
+      @signal_handler     = true
     end
 
     #
@@ -121,27 +133,11 @@ module Furnish
     # and #running? and #stop to control and monitor the threads this class
     # manages.
     #
-    # This call also installs a SIGINFO (Ctrl+T in the terminal on macs) and
-    # SIGUSR2 handler which can be used to get information on the status of
-    # what's solved and what's working. You can disable this functionality by
-    # passing `false` as the first argument.
-    #
-    def run(install_handler=true)
+    def run
       # short circuit if we're not serial and already running
       return if running?
 
-      if install_handler
-        handler = lambda do |*args|
-          # XXX See Palsy#with_t and Palsy#no_lock for why this is necessary.
-          Palsy.instance.no_lock do
-            Furnish.logger.puts ["solved:", vm.solved.to_a].inspect
-            Furnish.logger.puts ["working:", vm.working.to_a].inspect
-            Furnish.logger.puts ["waiting:", vm.waiters.to_a].inspect
-          end
-        end
-
-        %w[USR2 INFO].each { |sig| trap(sig, &handler) if Signal.list[sig] }
-      end
+      install_handler if signal_handler
 
       if @serial
         service_resolved_waiters
@@ -414,6 +410,19 @@ module Furnish
       vm.working.delete(group_name)
       vm.dependencies.delete(group_name)
       vm.groups.delete(group_name)
+    end
+
+    def install_handler
+      handler = lambda do |*args|
+        # XXX See Palsy#with_t and Palsy#no_lock for why this is necessary.
+        Palsy.instance.no_lock do
+          Furnish.logger.puts ["solved:", vm.solved.to_a].inspect
+          Furnish.logger.puts ["working:", vm.working.to_a].inspect
+          Furnish.logger.puts ["waiting:", vm.waiters.to_a].inspect
+        end
+      end
+
+      %w[USR2 INFO].each { |sig| trap(sig, &handler) if Signal.list[sig] }
     end
   end
 end
