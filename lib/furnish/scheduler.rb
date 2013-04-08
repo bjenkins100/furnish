@@ -40,7 +40,6 @@ module Furnish
     #
     # Default is true.
     #
-
     attr_accessor :signal_handler
 
     #
@@ -54,6 +53,7 @@ module Furnish
       @working_threads    = { }
       @queue              = Queue.new
       @vm                 = Furnish::VM.new
+      @recovering         = false
       @signal_handler     = true
     end
 
@@ -73,6 +73,18 @@ module Furnish
         @solver_thread.join
         return nil
       end
+    end
+
+    def recovering?
+      @recovering
+    end
+
+    def needs_recovery?
+      needs_recovery.count > 0
+    end
+
+    def needs_recovery
+      vm.need_recovery
     end
 
     #
@@ -153,6 +165,31 @@ module Furnish
           queue_loop
         end
       end
+    end
+
+    def recover
+      install_handler if signal_handler
+
+      @recovering = true
+
+      failures = { }
+
+      needs_recovery.keys.each do |k|
+        begin
+          if vm.groups[k].recover
+            needs_recovery.delete(k)
+            @queue << k
+          else
+            failures[k] = false
+          end
+        rescue => e
+          failures[k] = e
+        end
+      end
+
+      @recovering = false
+
+      return failures
     end
 
     #
@@ -264,9 +301,11 @@ module Furnish
     #
     def with_timeout(do_loop=true)
       Timeout.timeout(1) do
-        dead_working = @working_threads.values.reject(&:alive?)
-        if dead_working.size > 0
-          dead_working.map(&:join)
+        dead_working = @working_threads.reject { |k,v| v.alive? }
+        if dead_working.keys.size > 0
+          dead_working.each do |k, t|
+            @working_threads.delete(k)
+          end
         end
 
         yield
@@ -323,7 +362,7 @@ module Furnish
     #
     def resolve_waiters
       vm.sync_waiters do |waiters|
-        waiters.replace(waiters.to_set - (@working_threads.keys.to_set + vm.solved.to_set))
+        waiters.replace(waiters.to_set - (vm.working.to_set + vm.solved.to_set))
       end
     end
 
@@ -356,12 +395,12 @@ module Furnish
     # Similar to #startup -- just a shim to talk to a specific ProvisionerGroup
     #
     def shutdown(group_name)
-      provisioner = vm.groups[group_name]
+      group = vm.groups[group_name]
 
       # if we can't find the provisioner, we probably got asked to clean up
       # something we never scheduled. Just ignore that.
-      if provisioner and can_deprovision?(group_name)
-        provisioner.shutdown(@force_deprovision)
+      if group and can_deprovision?(group_name)
+        group.shutdown(@force_deprovision)
       end
     end
 
@@ -385,9 +424,20 @@ module Furnish
               # HACK: just give the working check something that will always work.
               #       Probably should just mock it.
               @working_threads[group_name] = Thread.new { sleep }
-              startup(group_name)
+              begin
+                startup(group_name)
+              rescue => e
+                vm.need_recovery[group_name] = e
+                raise e
+              end
             else
-              @working_threads[group_name] = Thread.new { startup(group_name) }
+              @working_threads[group_name] = Thread.new do
+                begin
+                  startup(group_name)
+                rescue => e
+                  vm.need_recovery[group_name] = e
+                end
+              end
             end
           end
         end
@@ -424,7 +474,7 @@ module Furnish
           Furnish.logger.puts ["solved:", vm.solved.to_a].inspect
           Furnish.logger.puts ["working:", vm.working.to_a].inspect
           Furnish.logger.puts ["waiting:", vm.waiters.to_a].inspect
-          Furnish.logger.puts ["provisioning:", vm.working.to_a.map { |w| [w, vm.groups[w].group_state['action'], groups[w].group_state['provisioner']] }]
+          Furnish.logger.puts ["provisioning:", vm.working.to_a.map { |w| [w, vm.groups[w].group_state['action'], vm.groups[w].group_state['provisioner']] }]
         end
       end
 

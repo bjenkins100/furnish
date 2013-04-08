@@ -36,14 +36,12 @@ module Furnish
       assert_equal("floop", sched.vm.groups['test1'].first.report.last, 'state was stored after provision success')
 
       assert(sched.schedule_provision('test2', [Dummy.new, StartFailDummy.new], []))
-
-      # the next few lines are an unfortunate necessity, sorry.
-      @monitor.kill rescue nil
-      assert_raises(RuntimeError) do
-        sched.run
-        sleep 0.1 while sched.running?
+      sched.run rescue nil # FIXME oof. maybe move this to indepedent tests for serial mode?
+      unless sched.serial
+        sleep 0.1 while !sched.needs_recovery.has_key?('test2')
       end
-
+      assert(sched.serial || sched.running?)
+      assert_includes(sched.needs_recovery.keys, 'test2')
       assert_equal("floop", sched.vm.groups['test2'].first.report.last, "provision failed but state is still stored for the provisions that succeeded")
     end
 
@@ -198,10 +196,12 @@ module Furnish
     def test_provision_failures
       dummy = StartFailDummy.new
       assert(sched.schedule_provision('blarg', dummy))
-      assert_raises(RuntimeError, "Could not provision blarg with provisioner StartFailDummy") do
-        sched.run
-        sched.wait_for('blarg')
+      sched.run rescue nil # FIXME oof. maybe move this to indepedent tests for serial mode?
+      if !sched.serial
+        sleep 0.1 while !sched.needs_recovery.has_key?('blarg')
       end
+      assert(sched.serial || sched.running?, 'still running after failure')
+      assert_includes(sched.needs_recovery, 'blarg')
       sched.stop
       sched.deprovision_group('blarg')
 

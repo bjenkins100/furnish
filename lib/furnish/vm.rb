@@ -14,6 +14,8 @@ module Furnish
     attr_reader :working
     # the set of groups waiting to be provisioned.
     attr_reader :waiters
+    # the set of groups that need recovery, and the exceptions they threw (if any)
+    attr_reader :need_recovery
 
     #
     # Create a new VM object. Should only happen in the Scheduler.
@@ -21,6 +23,7 @@ module Furnish
     def initialize
       @groups        = Palsy::Map.new('vm_groups', 'provisioner_group')
       @dependencies  = Palsy::Map.new('vm_groups', 'dependency_group')
+      @need_recovery = Palsy::Map.new('vm_groups', 'need_recovery')
       @solved        = Palsy::Set.new('vm_scheduler', 'provisioned')
       @working       = Palsy::Set.new('vm_scheduler', 'working')
       @waiters       = Palsy::Set.new('vm_scheduler', 'waiters')

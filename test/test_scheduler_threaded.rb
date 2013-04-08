@@ -19,12 +19,13 @@ class TestSchedulerThreaded < Furnish::RestartingSchedulerTestCase
     #
     # this actually tests that functionality, so kill the monitor prematurely.
     #
-    @monitor.kill rescue nil
     assert(sched.schedule_provision('blarg', SleepyFailingDummy.new))
     sched.run
     assert(sched.running?, 'running after provision')
-    sleep 3
-    assert_raises(RuntimeError, "Could not provision blarg with provisioner SleepyFailingDummy") { sched.running? }
+    sleep 4
+    assert(sched.running?, 'still running after failure')
+    assert_kind_of(RuntimeError, sched.needs_recovery['blarg'])
+    assert_equal("Could not provision blarg[SleepyFailingDummy]", sched.needs_recovery['blarg'].message)
     sched.teardown
     refute(sched.running?, 'not running after teardown')
   end
