@@ -130,7 +130,7 @@ module Furnish
     # If a block is provided, will yield self to it for each step through the
     # group.
     #
-    def startup(args={})
+    def startup(args={ })
       @group_state['action'] = :startup
 
       each_with_index do |this_prov, i|

@@ -47,14 +47,14 @@ class TestProvisionerGroup < Furnish::TestCase
     assert_nil(pg.group_state['provisioner'])
 
     pg = Furnish::ProvisionerGroup.new([Dummy.new, StartFailDummy.new], 'track_test')
-    assert_raises(RuntimeError, "Could not provision #{pg.name} with provisioner #{dummy.class.name}") { pg.startup({ :foo => 1 }) }
+    assert_raises(RuntimeError, "Could not provision #{pg.name} with provisioner #{dummy.class.name}") { pg.startup }
     assert_equal(1, pg.group_state['index'])
     assert_equal(:startup, pg.group_state['action'])
     assert_equal(StartFailDummy, pg.group_state['provisioner'].class)
     assert_equal({}, pg.group_state['provisioner_args'])
 
     pg = Furnish::ProvisionerGroup.new([Dummy.new, StartExceptionDummy.new], 'track_test')
-    assert_raises(RuntimeError, "Could not provision #{pg.name} with provisioner #{dummy.class.name}") { pg.startup({ :foo => 1 }) }
+    assert_raises(RuntimeError, "Could not provision #{pg.name} with provisioner #{dummy.class.name}") { pg.startup }
     assert_equal(1, pg.group_state['index'])
     assert_equal(:startup, pg.group_state['action'])
     assert_equal(StartExceptionDummy, pg.group_state['provisioner'].class)
@@ -73,12 +73,12 @@ class TestProvisionerGroup < Furnish::TestCase
     assert_equal(StopExceptionDummy, pg.group_state['provisioner'].class)
 
     dummy = StartFailDummy.new
-    pg = Furnish::ProvisionerGroup.new(dummy, 'blarg2')
-    assert_raises(RuntimeError, "Could not provision #{pg.name} with provisioner #{dummy.class.name}") { pg.startup({ :foo => 1 }) }
-    assert_equal(0, pg.group_state['index'])
+    pg = Furnish::ProvisionerGroup.new([ReturnsDataDummy.new, dummy], 'blarg2')
+    assert_raises(RuntimeError, "Could not provision #{pg.name} with provisioner #{dummy.class.name}") { pg.startup }
+    assert_equal(1, pg.group_state['index'])
     assert_equal(:startup, pg.group_state['action'])
     assert_equal(dummy.class, pg.group_state['provisioner'].class)
-    assert_equal({:foo => 1}, pg.group_state['provisioner_args'])
+    assert_equal({:started => 1}, pg.group_state['provisioner_args'])
 
     dummy = StopFailDummy.new
     pg = Furnish::ProvisionerGroup.new(dummy, 'blarg3')

@@ -191,3 +191,15 @@ class FailedRecoverDummy < Dummy
     return run_state[__method__] = false
   end
 end
+
+class ReturnsDataDummy < Dummy
+  def startup(args)
+    super
+    return({ :started => 1 })
+  end
+
+  def shutdown
+    super
+    return({ :stopped => 1 })
+  end
+end
