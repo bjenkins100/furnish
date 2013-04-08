@@ -114,16 +114,38 @@ class TestProvisionerGroup < Furnish::TestCase
   end
 
   def test_recover
-    pg = Furnish::ProvisionerGroup.new(RecoverableDummy.new, 'recover1')
-    assert_raises(RuntimeError) { pg.startup }
-    assert_equal(0, pg.group_state['index'])
-    assert_equal(:startup, pg.group_state['action'])
-    assert_equal(RecoverableDummy, pg.group_state['provisioner'].class)
-    assert_equal({ }, pg.group_state['provisioner_args'])
-    assert(pg.recover)
-    assert_nil(pg.group_state['index'])
-    assert_nil(pg.group_state['provisioner_args'])
-    assert_nil(pg.group_state['action'])
-    assert_nil(pg.group_state['provisioner'])
+    [ RecoverableDummy, RaisingRecoverableDummy ].each do |prov|
+      pg = Furnish::ProvisionerGroup.new(prov.new, 'recover1')
+      assert_raises(RuntimeError) { pg.startup }
+      assert_equal(0, pg.group_state['index'])
+      assert_equal(:startup, pg.group_state['action'])
+      assert_equal(prov, pg.group_state['provisioner'].class)
+      assert_equal({ }, pg.group_state['provisioner_args'])
+      assert(pg.recover)
+      assert_nil(pg.group_state['index'])
+      assert_nil(pg.group_state['provisioner_args'])
+      assert_nil(pg.group_state['action'])
+      assert_nil(pg.group_state['provisioner'])
+      #
+      # FIXME encode is needed for issue #2 in palsy
+      #
+      assert(pg.first.run_state['startup'.encode('UTF-8')])
+
+      pg = Furnish::ProvisionerGroup.new(prov.new, 'recover2')
+      assert_raises(RuntimeError) { pg.shutdown }
+      assert_equal(0, pg.group_state['index'])
+      assert_equal(:shutdown, pg.group_state['action'])
+      assert_equal(prov, pg.group_state['provisioner'].class)
+      assert_nil(pg.group_state['provisioner_args'])
+      assert(pg.recover)
+      assert_nil(pg.group_state['index'])
+      assert_nil(pg.group_state['provisioner_args'])
+      assert_nil(pg.group_state['action'])
+      assert_nil(pg.group_state['provisioner'])
+      #
+      # FIXME encode is needed for issue #2 in palsy
+      #
+      assert(pg.first.run_state['shutdown'.encode('UTF-8')])
+    end
   end
 end

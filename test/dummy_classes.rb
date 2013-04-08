@@ -149,6 +149,27 @@ class RecoverableDummy < Dummy
   end
 end
 
+class RaisingRecoverableDummy < Dummy
+  allows_recovery
+
+  def startup(*args)
+    super
+    raise unless @recovered
+    return @recovered
+  end
+
+  def shutdown
+    super
+    raise unless @recovered
+    return @recovered
+  end
+
+  def recover(state, args)
+    @recovered = true
+    return true
+  end
+end
+
 class FailedRecoverDummy < Dummy
   allows_recovery
 
