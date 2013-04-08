@@ -32,6 +32,10 @@ module Furnish
         @order = Palsy::List.new('dummy_order', 'shared')
       end
 
+      def run_state
+        @run_state ||= Palsy::Map.new('dummy_run_state', respond_to?(:furnish_group_name) ? furnish_group_name : name)
+      end
+
       #
       # call order is ordering on a per-provisioner group basis, and is used to
       # validate that groups do indeed execute in the proper order.
@@ -81,7 +85,14 @@ module Furnish
         @order.push(furnish_group_name)
         call_order.push(id || "unknown")
 
-        yield
+        result = yield
+
+        #
+        # FIXME encode is needed for issue #2 in palsy
+        #
+        run_state[meth_name.encode('UTF-8')] = result
+
+        return result
       end
     end
   end
