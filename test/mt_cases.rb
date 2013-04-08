@@ -62,6 +62,9 @@ module Furnish
         sched.s(test4, FailedRecoverDummy.new)
         sched.s(test5, Dummy.new, [test4])
         sched.run rescue nil
+        if sched.serial
+          assert(sched.needs_recovery?)
+        end
         sched.run rescue nil
         assert(sched.serial || sched.running?)
         unless sched.serial
