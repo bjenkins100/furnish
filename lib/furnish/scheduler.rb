@@ -176,7 +176,11 @@ module Furnish
 
       needs_recovery.keys.each do |k|
         begin
-          if vm.groups[k].recover
+          group = vm.groups[k]
+          result = group.recover
+          vm.groups[k] = group
+
+          if result
             needs_recovery.delete(k)
             @queue << k
           else
@@ -185,6 +189,10 @@ module Furnish
         rescue => e
           failures[k] = e
         end
+      end
+
+      if @serial
+        queue_loop
       end
 
       @recovering = false
