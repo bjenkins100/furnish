@@ -88,6 +88,9 @@ module Furnish
       schedule_provisioner_group(group)
     end
 
+    alias s schedule_provision
+    alias sched schedule_provision
+
     #
     # Schedule a provision with a Furnish::ProvisionerGroup. Works exactly like
     # Furnish::Scheduler#schedule_provision otherwise.
@@ -107,6 +110,8 @@ module Furnish
         waiters.add(group.name)
       end
     end
+
+    alias << schedule_provisioner_group
 
     #
     # Sleep until this list of dependencies are resolved. In parallel mode, will
