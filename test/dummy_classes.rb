@@ -107,8 +107,8 @@ class BadDummy < Furnish::Provisioner::Dummy
   attr_accessor :name
 
   # this retardation lets us make it look like furnish_group_name doesn't exist
-  def respond_to?(arg)
-    super unless [:furnish_group_name, :furnish_group_name=].include?(arg)
+  def respond_to?(meth, include_all=true)
+    super unless [:furnish_group_name, :furnish_group_name=].include?(meth)
   end
 end
 
