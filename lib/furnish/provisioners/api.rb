@@ -171,6 +171,15 @@ module Furnish # :nodoc:
       end
 
       #
+      # This contains the Furnish::Protocol configuration for shutdown (aka
+      # provisioning) state execution. See API.configure_shutdown for more
+      # information.
+      #
+      def self.shutdown_protocol
+        @shutdown_protocol ||= Furnish::Protocol.new
+      end
+
+      #
       # configure the Furnish::Protocol for startup state execution. This
       # allows you to define constraints for your provisioner that are used at
       # scheduling time to determine whether or not the ProvisionerGroup will
@@ -206,6 +215,15 @@ module Furnish # :nodoc:
       #
       def self.configure_startup(&block)
         startup_protocol.configure(&block)
+      end
+
+      #
+      # This is exactly like API.configure_startup, but for the shutdown
+      # process. Do note that shutdown runs the provisioners backwards, meaning
+      # the validation process also follows suit.
+      #
+      def self.configure_shutdown(&block)
+        shutdown_protocol.configure(&block)
       end
 
       ##

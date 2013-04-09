@@ -72,45 +72,6 @@ module Furnish
     end
 
     #
-    # Asserts that all the provisioners can communicate with each other.
-    #
-    # This leverages the Furnish::Protocol#requires_from and
-    # Furnish::Protocol#accepts_from assertions and raises if they return
-    # false. It walks over any provisioners that do not implement
-    # Furnish::Protocol.
-    #
-    def assert_provisioner_protocol(provisioners)
-      iterator = provisioners.dup
-      yielding = iterator.shift
-
-      while accepting = iterator.shift
-        y_class = yielding.class
-        a_class = accepting.class
-
-        unless y_class.respond_to?(:startup_protocol)
-          raise ArgumentError, "#{y_class} does not implement Furnish::Provisioner::API -- cannot continue"
-        end
-
-        unless a_class.respond_to?(:startup_protocol)
-          raise ArgumentError, "#{a_class} does not implement Furnish::Provisioner::API -- cannot continue"
-        end
-
-        y_proto = y_class.startup_protocol
-        a_proto = a_class.startup_protocol
-
-        unless a_proto.requires_from(y_proto)
-          raise ArgumentError, "#{accepting.class} requires information during startup that #{yielding.class} does not yield"
-        end
-
-        unless a_proto.accepts_from(y_proto)
-          raise ArgumentError, "#{accepting.class} expects information during startup from #{yielding.class} that will not be delivered"
-        end
-
-        yielding = accepting
-      end
-    end
-
-    #
     # Provision this group.
     #
     # Initial arguments go to the first provisioner's startup method, and then
@@ -307,6 +268,53 @@ module Furnish
         end
       end
       return result
+    end
+
+    #
+    # Asserts that all the provisioners can communicate with each other.
+    #
+    # This leverages the Furnish::Protocol#requires_from and
+    # Furnish::Protocol#accepts_from assertions and raises if they return
+    # false. It walks over any provisioners that do not implement
+    # Furnish::Protocol.
+    #
+    def assert_provisioner_protocol(provisioners)
+      assert_ordered_protocol(provisioners.dup, :startup_protocol)
+      assert_ordered_protocol(provisioners.reverse, :shutdown_protocol)
+    end
+
+    #
+    # This carries out the logic in #assert_provisioner_protocol, catering
+    # towards which protocol we're validating.
+    #
+    def assert_ordered_protocol(iterator, protocol_method)
+      yielding = iterator.shift
+
+      while accepting = iterator.shift
+        y_class = yielding.class
+        a_class = accepting.class
+
+        unless y_class.respond_to?(protocol_method)
+          raise ArgumentError, "#{y_class} does not implement protocol #{protocol_method} -- cannot continue"
+        end
+
+        unless a_class.respond_to?(protocol_method)
+          raise ArgumentError, "#{a_class} does not implement protocol #{protocol_method} -- cannot continue"
+        end
+
+        y_proto = y_class.send(protocol_method)
+        a_proto = a_class.send(protocol_method)
+
+        unless a_proto.requires_from(y_proto)
+          raise ArgumentError, "#{accepting.class} requires information during startup that #{yielding.class} does not yield"
+        end
+
+        unless a_proto.accepts_from(y_proto)
+          raise ArgumentError, "#{accepting.class} expects information during startup from #{yielding.class} that will not be delivered"
+        end
+
+        yielding = accepting
+      end
     end
   end
 end
