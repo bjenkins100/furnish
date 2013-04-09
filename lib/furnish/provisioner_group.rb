@@ -306,11 +306,11 @@ module Furnish
         a_proto = a_class.send(protocol_method)
 
         unless a_proto.requires_from(y_proto)
-          raise ArgumentError, "#{accepting.class} requires information during startup that #{yielding.class} does not yield"
+          raise ArgumentError, "#{accepting.class} requires information specified by #{protocol_method} that #{yielding.class} does not yield"
         end
 
         unless a_proto.accepts_from(y_proto)
-          raise ArgumentError, "#{accepting.class} expects information during startup from #{yielding.class} that will not be delivered"
+          raise ArgumentError, "#{accepting.class} expects information specified by #{protocol_method} that #{yielding.class} will not deliver"
         end
 
         yielding = accepting

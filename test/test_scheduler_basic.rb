@@ -46,5 +46,21 @@ class TestSchedulerBasic < Furnish::SchedulerTestCase
     assert(sched.schedule_provision('blarg12', [YieldsFooBarDummy.new, AcceptsIntegerBarDummy.new]))
     assert(sched.schedule_provision('blarg13', [YieldsFooDummy.new, AcceptsFooDummy.new]))
     assert(sched.schedule_provision('blarg14', [YieldsFooBarDummy.new, RequiresBarDummy.new]))
+
+    assert(sched.schedule_provision('blarg-shutdown', [ShutdownAcceptsIntegerBarDummy.new, ShutdownYieldsIntegerBarDummy.new]))
+    assert(sched.schedule_provision('blarg1-shutdown', [ShutdownRequiresBarDummy.new, ShutdownYieldsIntegerBarDummy.new]))
+    assert(sched.schedule_provision('blarg2-shutdown', [ShutdownAcceptsStringBarDummy.new, ShutdownYieldsStringBarDummy.new]))
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg3-shutdown', [ShutdownRequiresBarDummy.new, ShutdownYieldsStringBarDummy.new] ) }
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg4-shutdown', [ShutdownAcceptsIntegerBarDummy.new, ShutdownYieldsStringBarDummy.new]) }
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg5-shutdown', [ShutdownAcceptsIntegerBarDummy.new, ShutdownYieldsFooDummy.new]) }
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg6-shutdown', [ShutdownRequiresBarDummy.new, ShutdownYieldsFooDummy.new]) }
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg7-shutdown', [ShutdownAcceptsFooDummy.new, ShutdownYieldsIntegerBarDummy.new]) }
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg8-shutdown', [ShutdownAcceptsFooDummy.new, ShutdownYieldsStringBarDummy.new]) }
+    assert_raises(ArgumentError) { sched.schedule_provision('blarg9-shutdown', [ShutdownRequiresBarAcceptsFooDummy.new, ShutdownYieldsIntegerBarDummy.new]) }
+    assert(sched.schedule_provision('blarg10-shutdown', [ShutdownRequiresBarAcceptsFooDummy.new, ShutdownYieldsFooBarDummy.new]))
+    assert(sched.schedule_provision('blarg11-shutdown', [ShutdownAcceptsFooDummy.new, ShutdownYieldsFooBarDummy.new]))
+    assert(sched.schedule_provision('blarg12-shutdown', [ShutdownAcceptsIntegerBarDummy.new, ShutdownYieldsFooBarDummy.new]))
+    assert(sched.schedule_provision('blarg13-shutdown', [ShutdownAcceptsFooDummy.new, ShutdownYieldsFooDummy.new]))
+    assert(sched.schedule_provision('blarg14-shutdown', [ShutdownRequiresBarDummy.new, ShutdownYieldsFooBarDummy.new]))
   end
 end

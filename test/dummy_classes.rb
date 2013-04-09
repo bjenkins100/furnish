@@ -69,6 +69,62 @@ class RequiresBarAcceptsFooDummy < Dummy
   end
 end
 
+class ShutdownAcceptsIntegerBarDummy < Dummy
+  configure_shutdown do
+    accepts :bar, "bar", Integer
+  end
+end
+
+class ShutdownYieldsIntegerBarDummy < Dummy
+  configure_shutdown do
+    yields :bar, "bar", Integer
+  end
+end
+
+class ShutdownAcceptsStringBarDummy < Dummy
+  configure_shutdown do
+    accepts :bar, "bar", String
+  end
+end
+
+class ShutdownYieldsStringBarDummy < Dummy
+  configure_shutdown do
+    yields :bar, "bar", String
+  end
+end
+
+class ShutdownAcceptsFooDummy < Dummy
+  configure_shutdown do
+    accepts :foo, "foo", String
+  end
+end
+
+class ShutdownYieldsFooDummy < Dummy
+  configure_shutdown do
+    yields :foo, "foo", String
+  end
+end
+
+class ShutdownRequiresBarDummy < Dummy
+  configure_shutdown do
+    requires :bar, "bar", Integer
+  end
+end
+
+class ShutdownYieldsFooBarDummy < Dummy
+  configure_shutdown do
+    yields :bar, "bar", Integer
+    yields :foo, "foo", String
+  end
+end
+
+class ShutdownRequiresBarAcceptsFooDummy < Dummy
+  configure_shutdown do
+    requires :bar, "bar", Integer
+    accepts :foo, "foo", String
+  end
+end
+
 class StartFailDummy < Dummy
   def startup(args={ })
     super
