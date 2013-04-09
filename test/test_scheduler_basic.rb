@@ -65,4 +65,22 @@ class TestSchedulerBasic < Furnish::SchedulerTestCase
     assert(sched.schedule_provision('blarg14-shutdown', [ShutdownRequiresBarDummy.new, ShutdownYieldsFooBarDummy.new]))
     assert(sched.schedule_provision('blarg15-shutdown', [ShutdownRequiresBarAcceptsFooDummy.new, ShutdownYieldsFooDummy.new, ShutdownYieldsIntegerBarDummy.new]))
   end
+
+  def test_cascade_protocol
+    assert(sched.schedule_provision('blarg-cascade1', [ReturnsInfoDummy.new, Dummy.new, Dummy.new]))
+    assert(sched.schedule_provision('blarg-cascade2', [Dummy.new, Dummy.new, ReturnsInfoDummy.new]))
+    sched.run
+    assert(sched.serial || sched.running?)
+    sched.wait_for('blarg-cascade1', 'blarg-cascade2')
+    assert_solved('blarg-cascade1')
+    assert_solved('blarg-cascade2')
+    cascade1 = sched.vm.groups['blarg-cascade1']
+    cascade2 = sched.vm.groups['blarg-cascade2']
+    assert_equal({ :startup_blah => [1] }, cascade1.last.run_state[:startup])
+    assert_equal({ :startup_blah => [1] }, cascade2.last.run_state[:startup])
+    sched.teardown
+
+    assert_equal({ :shutdown_blah => [1] }, cascade1.first.run_state[:shutdown])
+    assert_equal({ :shutdown_blah => [1] }, cascade2.first.run_state[:shutdown])
+  end
 end

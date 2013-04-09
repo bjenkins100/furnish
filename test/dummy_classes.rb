@@ -13,6 +13,20 @@ Dummy = Furnish::Provisioner::Dummy unless defined? Dummy
 # FIXME Probably should generate these classes
 #
 
+class ReturnsInfoDummy < Dummy
+  def startup(args={})
+    retval = { :startup_blah => [1] }
+    super(retval)
+    return retval
+  end
+
+  def shutdown(args={})
+    retval = { :shutdown_blah => [1] }
+    super(retval)
+    return retval
+  end
+end
+
 class AcceptsIntegerBarDummy < Dummy
   configure_startup do
     accepts :bar, "bar", Integer

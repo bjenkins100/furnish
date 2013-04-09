@@ -63,7 +63,7 @@ module Furnish
       def startup(args={ })
         @persist = "floop"
         do_delegate(__method__) do
-          run_state[__method__] = { }
+          run_state[__method__] = args
         end
       end
 
@@ -72,7 +72,7 @@ module Furnish
       #
       def shutdown(args={ })
         do_delegate(__method__) do
-          run_state[__method__] = { }
+          run_state[__method__] = args
         end
       end
 
