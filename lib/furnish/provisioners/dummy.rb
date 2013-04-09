@@ -67,7 +67,7 @@ module Furnish
       #
       # shutdown shim
       #
-      def shutdown
+      def shutdown(args={ })
         do_delegate(__method__) do
           run_state[__method__] = { }
         end

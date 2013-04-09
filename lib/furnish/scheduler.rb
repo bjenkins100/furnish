@@ -177,7 +177,7 @@ module Furnish
       needs_recovery.keys.each do |k|
         begin
           group = vm.groups[k]
-          result = group.recover
+          result = group.recover(force_deprovision)
           vm.groups[k] = group
 
           if result
@@ -414,7 +414,7 @@ module Furnish
       # if we can't find the provisioner, we probably got asked to clean up
       # something we never scheduled. Just ignore that.
       if group and can_deprovision?(group_name)
-        group.shutdown(@force_deprovision)
+        group.shutdown({}, @force_deprovision)
       end
     end
 

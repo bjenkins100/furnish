@@ -166,17 +166,17 @@ module Furnish
     # shutdown routines. See Furnish::Scheduler#force_deprovision for
     # information on how to use this externally.
     #
-    def shutdown(force=false)
+    def shutdown(args={ }, force=false)
       @group_state['action'] = :shutdown
 
       reverse.each_with_index do |this_prov, i|
         next unless check_recovery(this_prov, i)
-        set_recovery(this_prov, i)
+        set_recovery(this_prov, i, args)
 
-        success = false
+        shutdown_args = args
 
         begin
-          success = perform_deprovision(this_prov) || force
+          args = perform_deprovision(this_prov, shutdown_args) || force
         rescue Exception => e
           if_debug do
             puts "Deprovision of #{this_prov} had errors:"
@@ -184,13 +184,13 @@ module Furnish
           end
 
           unless force
-            set_recovery(this_prov, i)
+            set_recovery(this_prov, i, shutdown_args)
             raise e
           end
         end
 
-        unless success or force
-          set_recovery(this_prov, i)
+        unless args or force
+          set_recovery(this_prov, i, shutdown_args)
           raise "Could not deprovision #{this_prov}"
         end
       end
@@ -200,7 +200,7 @@ module Furnish
       return true
     end
 
-    def recover
+    def recover(force_deprovision=false)
       index             = @group_state['index']
       action            = @group_state['action']
       provisioner       = @group_state['provisioner']
@@ -239,12 +239,11 @@ module Furnish
           @start_index        = index
           @start_provisioner  = orig_prov
 
-          # FIXME fix this with shutdown protocol fixes
           result = case action
                    when :startup
                      startup(provisioner_args)
                    when :shutdown
-                     shutdown
+                     shutdown(provisioner_args, force_deprovision)
                    else
                      raise "Wtf?"
                    end
@@ -300,8 +299,8 @@ module Furnish
     #
     # Just a way to simplify the deprovisioning logic with some generic logging.
     #
-    def perform_deprovision(this_prov)
-      result = this_prov.shutdown
+    def perform_deprovision(this_prov, args)
+      result = this_prov.shutdown(args)
       unless result
         if_debug do
           puts "Could not deprovision group #{this_prov}."

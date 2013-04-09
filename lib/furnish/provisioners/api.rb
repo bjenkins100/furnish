@@ -277,7 +277,7 @@ module Furnish # :nodoc:
       # The routine in this base class will raise NotImplementedError,
       # expecting you to override it in your provisioner.
       #
-      def shutdown
+      def shutdown(args={})
         raise NotImplementedError, "shutdown method not implemented for #{self.class.name}"
       end
 

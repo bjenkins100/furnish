@@ -70,28 +70,28 @@ class RequiresBarAcceptsFooDummy < Dummy
 end
 
 class StartFailDummy < Dummy
-  def startup(*args)
+  def startup(args={ })
     super
     false
   end
 end
 
 class StopFailDummy < Dummy
-  def shutdown
+  def shutdown(args={ })
     super
     false
   end
 end
 
 class StartExceptionDummy < Dummy
-  def startup(*args)
+  def startup(args={ })
     super
     raise "ermagherd startup"
   end
 end
 
 class StopExceptionDummy < Dummy
-  def shutdown(*args)
+  def shutdown(args={ })
     super
     raise "ermagherd shutdown"
   end
@@ -113,14 +113,14 @@ class BadDummy < Furnish::Provisioner::Dummy
 end
 
 class SleepyDummy < Dummy
-  def startup(*args)
+  def startup(args={ })
     sleep 1
     super
   end
 end
 
 class SleepyFailingDummy < SleepyDummy
-  def startup(*args)
+  def startup(args={ })
     super
     return false
   end
@@ -133,13 +133,13 @@ end
 class RecoverableDummy < Dummy
   allows_recovery
 
-  def startup(*args)
+  def startup(args={ })
     super
     run_state[__method__] = @recovered
     return @recovered
   end
 
-  def shutdown
+  def shutdown(args={ })
     super
     run_state[__method__] = @recovered
     return @recovered
@@ -154,14 +154,14 @@ end
 class RaisingRecoverableDummy < Dummy
   allows_recovery
 
-  def startup(*args)
+  def startup(args={ })
     super
     run_state[__method__] = @recovered
     raise unless @recovered
     return @recovered
   end
 
-  def shutdown
+  def shutdown(args={ })
     super
     run_state[__method__] = @recovered
     raise unless @recovered
@@ -177,12 +177,12 @@ end
 class FailedRecoverDummy < Dummy
   allows_recovery
 
-  def startup(*args)
+  def startup(args={ })
     super
     return run_state[__method__] = false
   end
 
-  def shutdown
+  def shutdown(args={ })
     super
     return run_state[__method__] = false
   end
@@ -193,12 +193,12 @@ class FailedRecoverDummy < Dummy
 end
 
 class ReturnsDataDummy < Dummy
-  def startup(args)
+  def startup(args={ })
     super
     return({ :started => 1 })
   end
 
-  def shutdown
+  def shutdown(args={ })
     super
     return({ :stopped => 1 })
   end
