@@ -450,7 +450,7 @@ module Furnish
       # if we can't find the provisioner, we probably got asked to clean up
       # something we never scheduled. Just ignore that.
       if group and can_deprovision?(group_name)
-        group.shutdown({}, @force_deprovision)
+        group.shutdown({}, force_deprovision)
       end
     end
 

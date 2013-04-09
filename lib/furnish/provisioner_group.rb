@@ -107,6 +107,8 @@ module Furnish
             "#{this_prov.class} does not return data that can be consumed by the next provisioner"
         end
 
+        args = startup_args.merge(args)
+
         yield self if block_given?
       end
 
@@ -154,6 +156,14 @@ module Furnish
           set_recovery(this_prov, i, shutdown_args)
           raise "Could not deprovision #{this_prov}"
         end
+
+        unless args.kind_of?(Hash) or force
+          set_recovery(this_prov, i, startup_args)
+          raise ArgumentError,
+            "#{this_prov.class} does not return data that can be consumed by the next provisioner"
+        end
+
+        args = shutdown_args.merge(args || { })
       end
 
       clean_state
@@ -312,32 +322,30 @@ module Furnish
     # towards which protocol we're validating.
     #
     def assert_ordered_protocol(iterator, protocol_method)
-      yielding = iterator.shift
+      yielders = [iterator.shift.class]
 
       while accepting = iterator.shift
-        y_class = yielding.class
-        a_class = accepting.class
+        accepting = accepting.class # meh
 
-        unless y_class.respond_to?(protocol_method)
-          raise ArgumentError, "#{y_class} does not implement protocol #{protocol_method} -- cannot continue"
+        unless yielders.all? { |y| y.respond_to?(protocol_method) }
+          raise ArgumentError, "yielding classes do not implement protocol #{protocol_method} -- cannot continue"
         end
 
-        unless a_class.respond_to?(protocol_method)
-          raise ArgumentError, "#{a_class} does not implement protocol #{protocol_method} -- cannot continue"
+        unless accepting.respond_to?(protocol_method)
+          raise ArgumentError, "accepting class #{accepting} does not implement protocol #{protocol_method} -- cannot continue"
         end
 
-        y_proto = y_class.send(protocol_method)
-        a_proto = a_class.send(protocol_method)
+        a_proto = accepting.send(protocol_method)
 
-        unless a_proto.requires_from(y_proto)
-          raise ArgumentError, "#{accepting.class} requires information specified by #{protocol_method} that #{yielding.class} does not yield"
+        unless yielders.any? { |y| a_proto.requires_from(y.send(protocol_method)) }
+          raise ArgumentError, "#{accepting} requires information specified by #{protocol_method} that yielding classes do not yield"
         end
 
-        unless a_proto.accepts_from(y_proto)
-          raise ArgumentError, "#{accepting.class} expects information specified by #{protocol_method} that #{yielding.class} will not deliver"
+        unless yielders.any? { |y| a_proto.accepts_from(y.send(protocol_method)) }
+          raise ArgumentError, "#{accepting} expects information specified by #{protocol_method} that yielding classes will not deliver"
         end
 
-        yielding = accepting
+        yielders.push(accepting)
       end
     end
   end
