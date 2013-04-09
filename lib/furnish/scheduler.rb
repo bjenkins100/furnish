@@ -529,7 +529,7 @@ module Furnish
           Furnish.logger.puts ["working:", vm.working.to_a].inspect
           Furnish.logger.puts ["waiting:", vm.waiters.to_a].inspect
           Furnish.logger.puts ["provisioning:", vm.working.to_a.map { |w| [w, vm.groups[w].group_state['action'], vm.groups[w].group_state['provisioner']] }]
-          Furnish.logger.puts ["needs recovery:", vm.needs_recovery.keys]
+          Furnish.logger.puts ["needs recovery:", needs_recovery.keys]
         end
       end
 
