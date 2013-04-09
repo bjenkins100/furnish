@@ -55,6 +55,22 @@ module Furnish # :nodoc:
     # written.
     #
     class API
+
+      #
+      # Ensures all properties are inherited by subclasses that inherit from API.
+      #
+      def self.inherited(inheriting)
+        [
+          :@furnish_properties,
+          :@startup_protocol,
+          :@shutdown_protocol
+        ].each do |prop|
+          inheriting.instance_variable_set(prop, (instance_variable_get(prop).dup rescue nil))
+        end
+
+        inheriting.instance_variable_set(:@allows_recovery, instance_variable_get(:@allows_recovery))
+      end
+
       ##
       # The set of furnish properties for this class. Returns a hash which is
       # keyed with symbols representing the property name, and the value itself
