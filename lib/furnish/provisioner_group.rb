@@ -161,6 +161,30 @@ module Furnish
       return true
     end
 
+    #
+    # Initiate recovery for this group. Reading
+    # Furnish::Provisioner::API#recover is essential for this documentation.
+    #
+    # This method should not be used directly -- see
+    # Furnish::Scheduler#recover.
+    #
+    # #startup and #shutdown track various bits of information about state as
+    # they run provisioners. #recover uses this information to find out where
+    # things stopped, and executes a Furnish::Provisioner::API#recover method
+    # with the action and last parameters supplied. If the result of the
+    # recovery is true, it then attempts to finish the provisioning process by
+    # starting with the action that failed the last time (the same provisioner
+    # the recover method was called on).
+    #
+    # #recover will return nil if it can't actually recover anything because it
+    # doesn't have enough information. It will also make no attempt to recover
+    # (and fail by returning false) if the provisioner does not allow recovery
+    # (see Furnish::Provisioner::API.allows_recovery?).
+    #
+    # If you pass a truthy argument, it will pass this on to #shutdown if the
+    # action is required -- this is required for forced deprovisioning and is
+    # dealt with by Furnish::Scheduler.
+    #
     def recover(force_deprovision=false)
       index             = @group_state['index']
       action            = @group_state['action']

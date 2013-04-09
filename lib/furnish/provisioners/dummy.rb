@@ -32,6 +32,9 @@ module Furnish
         @order = Palsy::List.new('dummy_order', 'shared')
       end
 
+      #
+      # used in state transitions to capture run information
+      #
       def run_state
         @run_state ||= Palsy::Map.new('dummy_run_state', [self.class.name, respond_to?(:furnish_group_name) ? furnish_group_name : name].join("-"))
       end
