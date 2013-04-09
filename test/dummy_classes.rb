@@ -146,7 +146,7 @@ class RecoverableDummy < Dummy
   end
 
   def recover(state, args)
-    @recovered = { }
+    @recovered = { state => true }
     return true
   end
 end
@@ -169,7 +169,7 @@ class RaisingRecoverableDummy < Dummy
   end
 
   def recover(state, args)
-    @recovered = { }
+    @recovered = { state => true }
     return true
   end
 end

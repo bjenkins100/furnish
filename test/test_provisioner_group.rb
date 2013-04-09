@@ -186,7 +186,7 @@ class TestProvisionerGroup < Furnish::TestCase
       assert_nil(pg.group_state['provisioner_args'])
       assert_nil(pg.group_state['action'])
       assert_nil(pg.group_state['provisioner'])
-      assert(pg.first.run_state[:startup])
+      assert_equal({ :startup => true }, pg.first.run_state[:startup])
       assert(pg.last.run_state[:startup])
 
       pg = Furnish::ProvisionerGroup.new([prov.new, Dummy.new], "#{prov.name}-recover6")
@@ -202,7 +202,7 @@ class TestProvisionerGroup < Furnish::TestCase
       assert_nil(pg.group_state['provisioner_args'])
       assert_nil(pg.group_state['action'])
       assert_nil(pg.group_state['provisioner'])
-      assert(pg.first.run_state[:shutdown])
+      assert_equal({ :shutdown => true }, pg.first.run_state[:shutdown])
       assert(pg.last.run_state[:shutdown])
     end
   end
