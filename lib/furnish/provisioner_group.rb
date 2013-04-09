@@ -120,9 +120,8 @@ module Furnish
     #
     # Deprovision this group.
     #
-    # Provisioners are run in reverse order against the shutdown method. No
-    # arguments are seeded as in Furnish::ProvisionerGroup#startup. Raise
-    # semantics are the same as with Furnish::ProvisionerGroup#startup.
+    # Provisioners are run in reverse order against the shutdown method.
+    # Argument handling semantics are exactly the same as #startup.
     #
     # If a true argument is passed to this method as the second argument, the
     # raise semantics will be ignored (but still logged), allowing all the
