@@ -6,8 +6,8 @@ module Furnish # :nodoc:
     #
     # API base class for furnish provisioners. Ideally, you will want to inherit
     # from this and supply your overrides. Nothing in furnish expects this
-    # class to be used by your provisioners, this just lets you save some
-    # trouble. That said, all methods in this class are expected to be
+    # class to be the base class of your provisioners, this just lets you save
+    # some trouble. That said, all methods in this class are expected to be
     # implemented by your provisioner if you choose not to use it.
     #
     # The method documentation here also declares expectations on how
@@ -16,21 +16,23 @@ module Furnish # :nodoc:
     # essential to writing a working provisioner.
     #
     # Note that all Provisioners *must* be capable of being marshalled with
-    # Ruby's Marshal library. If they are unable to do this, Furnish::Scheduler
-    # will not work. There are a few things such as proc/lambda in instance
-    # variables, usage of the Singleton module, and singleton classes in
-    # general that will interfere with Marshal's ability to work. There are
-    # additional, but less important performance complications around extend
-    # and refinements that will not break anything, but severely impact the
-    # performance of any furnish scheduler using a provisioner that uses them.
+    # Ruby's Marshal library. If they are unable to do this, many parts of
+    # Furnish will not work. There are a few things that break Marshal, such as
+    # proc/lambda in instance variables, usage of the Singleton module, and
+    # singleton class manipulation. Marshal has tooling to work around this if
+    # you absolutely need it; see Marshal's documentation for more information.
+    # Additionally, There are less important (but worth knowing) performance
+    # complications around extend and refinements that will not break anything,
+    # but should be noted as well.
     #
-    # This class provides some basic *optional* boilerplate for:
+    # This class provides some basic boilerplate for:
     #
     # * initializer/constructor usage (see API.new)
     # * property management / querying (see API.furnish_property)
     # * #furnish_group_name (see Furnish::ProvisionerGroup) usage
+    # * Implementations of Furnish::Protocol for #startup and #shutdown
     # * standard #report output
-    # * #to_s for various ruby functions
+    # * #to_s and #inspect for various ruby functions
     #
     # Additionally, "abstract" methods have been defined for provisioner
     # control methods:
@@ -40,10 +42,12 @@ module Furnish # :nodoc:
     #
     # Which will raise unless implemented by your subclass.
     #
-    # Return values are expected to be normal for these methods:
+    # Both parameters and return values are expected to be normal for these
+    # methods. Return base types are in parens next to the method name. Please
+    # see the methods themselves for parameter information.
     #
-    # * #startup
-    # * #shutdown
+    # * #startup (Hash or false)
+    # * #shutdown (Hash or false)
     # * #report
     #
     # And it would be wise to read the documentation on how those should be
@@ -231,6 +235,12 @@ module Furnish # :nodoc:
       # scheduling is requested via Furnish::Scheduler. It is a hint to the
       # provisioner as to what the name of the group it's in is, which can be
       # used to persist data, name things in a unique way, etc.
+      #
+      # Note that furnish_group_name will be nil until the
+      # Furnish::ProvisionerGroup is constructed. This means that it will not
+      # be set when #initialize runs, or any time before it joins the group. It
+      # is wise to only rely on this value being set when #startup or #shutdown
+      # execute.
       attr_accessor :furnish_group_name
 
       #
@@ -241,8 +251,8 @@ module Furnish # :nodoc:
       # information.
       #
       # Does nothing more, not required anywhere in furnish itself -- you may
-      # redefine this constructor and work completely differently wrt input and
-      # behavior, or call this as a superclass initializer and then do your
+      # redefine this constructor and work against completely differently input
+      # and behavior, or call this as a superclass initializer and then do your
       # work.
       #
       def initialize(args={})
@@ -266,16 +276,16 @@ module Furnish # :nodoc:
       end
 
       #
-      # called by Furnish::ProvisionerGroup which is itself called by
-      # Furnish::Scheduler. Indicates the resource this provisioner manages is
-      # to be created.
+      # Called by Furnish::ProvisionerGroup#startup which is itself called by
+      # Furnish::Scheduler#startup. Indicates the resource this provisioner
+      # manages is to be created.
       #
       # Arguments will come from the return values of the previous
-      # provisioner's startup or nothing if this is the first provisioner.
-      # Return value is expected to be false if the provision failed in a
-      # non-exceptional way, or a hash of values for the next provisioner if
-      # successful. See Furnish::Protocol for more information of what truthy
-      # values should look like.
+      # provisioner's startup or an empty Hash if this is the first
+      # provisioner.  Return value is expected to be false if the provision
+      # failed in a non-exceptional way, or a hash of values for the next
+      # provisioner if successful. See API.startup_protocol for how you can
+      # validate what you accept and yield for parameters will always work.
       #
       # The routine in this base class will raise NotImplementedError,
       # expecting you to override it in your provisioner.
@@ -285,12 +295,14 @@ module Furnish # :nodoc:
       end
 
       #
-      # called by Furnish::ProvisionerGroup which is itself called by
-      # Furnish::Scheduler. Indicates the resource this provisioner manages is
-      # to be destroyed.
+      # called by Furnish::ProvisionerGroup#shutdown which is itself called by
+      # Furnish::Scheduler#shutdown. Indicates the resource this provisioner
+      # manages is to be destroyed.
       #
-      # No arguments accepted, returns true on success or false on
-      # non-exceptional failure (which may be ignored by the scheduler).
+      # Arguments are exactly the same as #startup. Note that provisioners run
+      # in reverse order when executing shutdown methods. See
+      # API.shutdown_protocol for information on how to validate incoming
+      # parameters and how to declare what you yield.
       #
       # The routine in this base class will raise NotImplementedError,
       # expecting you to override it in your provisioner.
@@ -318,18 +330,19 @@ module Furnish # :nodoc:
       # for the first time. Therefore, for recover to be successful, it should
       # clean up any work the state has already done.
       #
-      # In the event recovery is not possible (the recover routine returns
-      # false), depending on how the scheduler is configured, the group will
-      # either deprovision itself or halt the scheduler again, forcing the code
-      # to handle recovery manually.
+      # See Furnish::Scheduler#recover for information on how to deal with
+      # recovery that will not succeed.
       #
       # Example: a provisioner for a security group crashes during running
-      # startup. The scheduler pauses, and is instructed to go into recovery
-      # mode. The method #recover is called, which then cleans up the security
-      # group attempted to be created (if it does not exist, that's fine too).
-      # Then, it returns true. Then the scheduler will retry the startup
-      # routine for the security group, which will attempt the same thing as if
-      # it has never tried to begin with.
+      # startup. The scheduler marks that group as needing recovery, and marks
+      # the scheduler in general as needing recovery.
+      # Furnish::Scheduler#recover is called, which locates our group and calls
+      # its recover routine, which delegates to your provisioner. Your
+      # provisioner then cleans up the security group attempted to be created
+      # (if it does not exist, that's fine too). Then, it returns true. Then
+      # the scheduler will retry the startup routine for your security group
+      # provisioner, which will attempt the same thing as if it has never tried
+      # to begin with.
       #
       def recover(state, args)
         if self.class.allows_recovery?
@@ -369,10 +382,21 @@ module Furnish # :nodoc:
 
       alias inspect to_s # FIXME make this less stupid later
 
+      #
+      # Assists with equality checks. See #hash for how this is done.
+      #
       def ==(other)
         self.hash == other.hash
       end
 
+      #
+      # Computes something suitable for storing in hash tables, also used for
+      # equality (see #==).
+      #
+      # Accomplishes this by collecting all instance variables in an array,
+      # converting strings to a common encoding if necessary. Then, appends the
+      # class and Marshals the contents of the array.
+      #
       def hash
         Marshal.dump(
           instance_variables.sort.map do |x|
