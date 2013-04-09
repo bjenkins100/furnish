@@ -121,6 +121,8 @@ module Furnish
       vm.sync_waiters do |waiters|
         waiters.add(group.name)
       end
+
+      return true
     end
 
     alias << schedule_provisioner_group
