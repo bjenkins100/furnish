@@ -75,10 +75,10 @@ module Furnish
     # Provision this group.
     #
     # Initial arguments go to the first provisioner's startup method, and then
-    # the return values, if truthy, get passed to the next provisioner's
-    # startup method. Any falsey value causes a RuntimeError to be raised and
-    # provisioning halts, effectively creating a chain of responsibility
-    # pattern.
+    # the return values, if a Hash, get merged with what was passed, and then
+    # the result is passed to the next provisioner's startup method. Any falsey
+    # value causes a RuntimeError to be raised and provisioning halts,
+    # effectively creating a chain of responsibility pattern.
     #
     # If a block is provided, will yield self to it for each step through the
     # group.
@@ -309,8 +309,9 @@ module Furnish
     #
     # This leverages the Furnish::Protocol#requires_from and
     # Furnish::Protocol#accepts_from assertions and raises if they return
-    # false. It walks over any provisioners that do not implement
-    # Furnish::Protocol.
+    # false. Any previous provisioner in the chain may yield something that the
+    # current accepting provisioner can require or accept. See the merge
+    # semantics in #startup and #shutdown for more information.
     #
     def assert_provisioner_protocol(provisioners)
       assert_ordered_protocol(provisioners.dup, :startup_protocol)
