@@ -124,10 +124,11 @@ module Furnish
     # arguments are seeded as in Furnish::ProvisionerGroup#startup. Raise
     # semantics are the same as with Furnish::ProvisionerGroup#startup.
     #
-    # If a true argument is passed to this method, the raise semantics will be
-    # ignored (but still logged), allowing all the provisioners to run their
-    # shutdown routines. See Furnish::Scheduler#force_deprovision for
-    # information on how to use this externally.
+    # If a true argument is passed to this method as the second argument, the
+    # raise semantics will be ignored (but still logged), allowing all the
+    # provisioners to run their shutdown routines. See
+    # Furnish::Scheduler#force_deprovision for information on how to use this
+    # externally.
     #
     def shutdown(args={ }, force=false)
       @group_state['action'] = :shutdown
