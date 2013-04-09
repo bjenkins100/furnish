@@ -198,7 +198,7 @@ module Furnish
           queue_loop
         rescue => e
           if_debug do
-            puts "During recovery, serial mode, encoutered: #{e}: #{e.message}"
+            puts "During recovery, serial mode, encountered: #{e}: #{e.message}"
           end
         end
       end
@@ -492,6 +492,7 @@ module Furnish
           Furnish.logger.puts ["working:", vm.working.to_a].inspect
           Furnish.logger.puts ["waiting:", vm.waiters.to_a].inspect
           Furnish.logger.puts ["provisioning:", vm.working.to_a.map { |w| [w, vm.groups[w].group_state['action'], vm.groups[w].group_state['provisioner']] }]
+          Furnish.logger.puts ["needs recovery:", vm.needs_recovery.keys]
         end
       end
 
