@@ -30,7 +30,8 @@ module Furnish # :nodoc:
     # * initializer/constructor usage (see API.new)
     # * property management / querying (see API.furnish_property)
     # * #furnish_group_name (see Furnish::ProvisionerGroup) usage
-    # * Implementations of Furnish::Protocol for #startup and #shutdown
+    # * Implementations of Furnish::Protocol for #startup and #shutdown (see
+    #   API.configure_startup and API.configure_shutdown)
     # * standard #report output
     # * #to_s and #inspect for various ruby functions
     #

@@ -19,7 +19,7 @@ module Furnish # :nodoc:
   #
   # A problem is that you have to know ahead of time how a, b, and c interact
   # for this to be successful. For example, you can't allocate an EC2 security
-  # group, than an instance, then a VPC, and expect the security group and
+  # group, then an instance, then a VPC, and expect the security group and
   # instance to live in that VPC. It's not only out of order, but the security
   # group doesn't know enough at the time it runs to leverage the VPC, because
   # the VPC doesn't exist yet.

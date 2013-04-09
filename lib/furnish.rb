@@ -4,10 +4,8 @@ require 'furnish/logger'
 require 'furnish/scheduler'
 
 #
-# Furnish is a scheduling system that has a massive readme which explains what
-# it does here:
-#
-# https://github.com/erikh/furnish
+# Furnish is a scheduling system. Check out the README for basic usage
+# instructions.
 #
 # You may also wish to read the Furnish::Scheduler, Furnish::Logger, and
 # Furnish::ProvisionerGroup documentation to learn more about it.
