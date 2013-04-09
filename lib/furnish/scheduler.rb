@@ -75,14 +75,24 @@ module Furnish
       end
     end
 
+    #
+    # Is recovery running? See #recover.
+    #
     def recovering?
       @recovering
     end
 
+    #
+    # Is recovery necessary? See #recover.
+    #
     def needs_recovery?
       needs_recovery.count > 0
     end
 
+    #
+    # A map of group name to Furnish::ProvisionerGroup for groups that failed
+    # their #startup or #shutdown. See #recover for more information
+    #
     def needs_recovery
       vm.need_recovery
     end
@@ -169,6 +179,30 @@ module Furnish
       end
     end
 
+    #
+    # Initiate recovery. While running, #recovering? will be true.
+    #
+    # Recovery will step through all the items in #needs_recovery and attempt
+    # to recover them according to Furnish::ProvisionerGroup#recover. If
+    # recovery succeeds, the items will be in the solved formula and
+    # effectively provisioned. They will also be removed from the
+    # needs_recovery information.
+    #
+    # If recovery fails, #needs_recovery will not be touched (but the state at
+    # which recovery starts the next attempt may be different for those
+    # groups). Additionally, the return value of this method will be keyed by
+    # the group name, and an exception or false depending on what we got back
+    # during recovery. It is strongly recommended you check #needs_recovery? or
+    # the return value after calling this to locate flapping groups.
+    #
+    # Recovery is a serial process and blocks the main thread. It also installs
+    # a signal handler if #signal_handler is set. It does not interrupt or stop
+    # the scheduler, but note that in serial mode, the scheduler will likely
+    # already be stopped by the time you are able to call recovery. In
+    # threaded mode, this means any dependencies that are able to be
+    # provisioned after a successful recovery of a group will automatically
+    # start provisioning.
+    #
     def recover
       install_handler if signal_handler
 
@@ -484,6 +518,9 @@ module Furnish
       vm.groups.delete(group_name)
     end
 
+    #
+    # Installs our signal handler -- see #signal_handler.
+    #
     def install_handler
       handler = lambda do |*args|
         # XXX See Palsy#with_t and Palsy#no_lock for why this is necessary.
