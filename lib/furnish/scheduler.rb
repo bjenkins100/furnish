@@ -138,9 +138,10 @@ module Furnish
     alias << schedule_provisioner_group
 
     #
-    # Sleep until this list of dependencies are resolved. In parallel mode, will
-    # raise if an exception occurred while waiting for these resources. In
-    # serial mode, wait_for just returns nil.
+    # Sleep until this list of dependencies are resolved. In parallel mode,
+    # will raise if an exception occurred while waiting for these groups, or
+    # the groups entered recovery state, or the scheduler is not currently
+    # running.  In serial mode, wait_for just returns nil.
     #
     def wait_for(*dependencies)
       return nil if @serial
