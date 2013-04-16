@@ -140,7 +140,7 @@ module Furnish
 
         begin
           args = perform_deprovision(this_prov, shutdown_args)
-        rescue Exception => e
+        rescue => e
           if_debug do
             puts "Deprovision of #{this_prov} had errors:"
             puts "#{e.message}"
