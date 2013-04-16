@@ -173,6 +173,8 @@ module Furnish
       end
     end
 
+    alias w wait_for
+
     #
     # Start the scheduler. In serial mode this call will block until the whole
     # dependency graph is satisfied, or one of the provisions fails, at which
@@ -320,8 +322,10 @@ module Furnish
 
         deprovision_group(group_name)
       end
-
     end
+
+    alias down teardown_group
+    alias d teardown_group
 
     #
     # Instruct all provisioners except ones in the exception list to tear down.

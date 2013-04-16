@@ -139,6 +139,20 @@ module Furnish
       assert_equal("floop", sched.vm.groups['test2'].first.report.last, "provision failed but state is still stored for the provisions that succeeded")
     end
 
+    def test_aliases
+      group = Furnish::ProvisionerGroup.new([Dummy.new], 'test2')
+      sched.s('test1', Dummy.new)
+      sched << group
+      sched.run rescue nil
+      sched.w('test1', 'test2')
+      assert_solved('test1')
+      assert_solved('test2')
+      sched.d('test1')
+      sched.d('test2')
+      refute_solved('test1')
+      refute_solved('test2')
+    end
+
     def test_wait_for_no_run
       unless sched.serial
         sched.s('test1', Dummy.new)
