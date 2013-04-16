@@ -9,6 +9,7 @@
     * #teardown_group is aliased to #d and #down
   * New API: Furnish::Scheduler#groups can be used to more easily get at
     provisioner groups the scheduler knows about.
+
 # 0.1.0 (04/09/2013)
   * Furnish requires 1.9.3 or greater -- always has been the case, now rubygems enforces that for us.
   * Runtime performance increased significantly. No hard numbers, but test
@@ -45,6 +46,7 @@
     * `<<` is now an alias for `schedule_provisioner_group`
     * `s` and `sched` are now aliases for `schedule_provision`
   * Probably some other shit I don't remember now.
+
 # 0.0.4 (03/25/2013)
   * Support for FURNISH_DEBUG environment variable for test suites.
   * Ruby 2.0.0-p0 Compatibility Fixes
