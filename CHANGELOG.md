@@ -1,4 +1,15 @@
-* 0.1.0 (04/09/2013)
+# 0.1.1 (04/16/2013)
+  * #wait_for would spin forever if something got flagged as needing recovery
+    (threaded scheduler only). Now raises the first item's exception if
+    provided, or a generic one if it just flagged a failure.
+  * #wait_for would also throw rather cryptic exceptions if the scheduler was
+    threaded and was not running. Now raises something communicative.
+  * aliases for commonly used scheduler methods:
+    * #wait_for is aliased to #w
+    * #teardown_group is aliased to #d and #down
+  * New API: Furnish::Scheduler#groups can be used to more easily get at
+    provisioner groups the scheduler knows about.
+# 0.1.0 (04/09/2013)
   * Furnish requires 1.9.3 or greater -- always has been the case, now rubygems enforces that for us.
   * Runtime performance increased significantly. No hard numbers, but test
     suite assertion count doubled and total test runtime actually dropped
@@ -34,16 +45,16 @@
     * `<<` is now an alias for `schedule_provisioner_group`
     * `s` and `sched` are now aliases for `schedule_provision`
   * Probably some other shit I don't remember now.
-* 0.0.4 (03/25/2013)
+# 0.0.4 (03/25/2013)
   * Support for FURNISH_DEBUG environment variable for test suites.
   * Ruby 2.0.0-p0 Compatibility Fixes
   * Documentation is RDoc 4.0 compatible.
 
-* 0.0.3 (03/21/2013)
+# 0.0.3 (03/21/2013)
   * Fix an issue where state wasn't tracked for provisioners themselves after the provisioning process had started.
 
-* 0.0.2 (03/20/2013)
+# 0.0.2 (03/20/2013)
   * Extract Furnish::TestCase into gem for consumption by other gems that need to test against furnish.
 
-* 0.0.1 (02/23/2013)
+# 0.0.1 (02/23/2013)
   * Initial release as extracted from chef-workflow.
