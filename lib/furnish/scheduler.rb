@@ -151,6 +151,20 @@ module Furnish
       until dep_set & vm.solved == dep_set
         sleep 0.1
         @solver_thread.join unless @solver_thread.alive?
+
+        dependencies_in_recovery = needs_recovery.keys.to_set & dep_set
+
+        if needs_recovery? and !dependencies_in_recovery.empty?
+          # we really can't get them all, but we can at least raise the first one.
+          group_name = dependencies_in_recovery.first
+
+          group_exception = needs_recovery[group_name]
+          if group_exception
+            raise group_exception
+          else
+            raise "group #{group_name} is in recovery during wait_for"
+          end
+        end
       end
     end
 

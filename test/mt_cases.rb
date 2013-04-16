@@ -28,13 +28,16 @@ module Furnish
 
         sched.s(test1, Dummy.new)
         sched.s(test2, prov.new)
-        sched.run rescue nil # FIXME oof. maybe move this to indepedent tests for serial mode?
+        sched.run rescue nil # start.
         assert(sched.serial || sched.running?)
         unless sched.serial
           sleep 0.1 while !sched.needs_recovery.has_key?(test2)
         end
         assert(sched.needs_recovery?)
         assert_includes(sched.needs_recovery.keys, test2)
+        unless sched.serial
+          assert_raises(RuntimeError) { sched.wait_for(test2) }
+        end
         refute_solved(test2)
         sched.s(test3, Dummy.new, [test2])
         refute_solved(test3)
@@ -72,6 +75,11 @@ module Furnish
           sleep 0.1 while !sched.needs_recovery.has_key?(test4)
         end
         assert(sched.needs_recovery?)
+        unless sched.serial
+          assert_raises(RuntimeError) { sched.wait_for(test2) }
+          assert_raises(RuntimeError) { sched.wait_for(test4) }
+          assert_raises(RuntimeError) { sched.wait_for(test1, test2, test3, test4, test5) }
+        end
         refute_solved(test2)
         refute_solved(test3)
         refute_solved(test4)
