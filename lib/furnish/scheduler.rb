@@ -98,6 +98,17 @@ module Furnish
     end
 
     #
+    # Get the Furnish::ProvisionerGroup by name as it currently exists in the
+    # scheduler.  Useful for querying properties of a given provisioner after
+    # they've been set.
+    #
+    def group(name)
+      vm.groups[name]
+    end
+
+    alias g group
+
+    #
     # Schedule a group of VMs for provision. This takes a group name, which is a
     # string, an array of provisioner objects, and a list of string dependencies.
     # If anything in the dependencies list hasn't been pre-declared, it refuses
