@@ -146,6 +146,10 @@ module Furnish
       return nil if @serial
       return nil if dependencies.empty?
 
+      unless running?
+        raise "The scheduler doesn't appear to be running or started. Can't wait_for anything!"
+      end
+
       dep_set = Set[*dependencies]
 
       until dep_set & vm.solved == dep_set

@@ -139,6 +139,19 @@ module Furnish
       assert_equal("floop", sched.vm.groups['test2'].first.report.last, "provision failed but state is still stored for the provisions that succeeded")
     end
 
+    def test_wait_for_no_run
+      unless sched.serial
+        sched.s('test1', Dummy.new)
+        assert_raises(RuntimeError) { sched.wait_for('test1') }
+        sched.run
+        sched.wait_for('test1')
+        assert_solved('test1')
+        sched.teardown
+        refute_solved('test1')
+        assert_raises(RuntimeError) { sched.wait_for('test1') }
+      end
+    end
+
     def test_provision_cycle
       machine_names = %w[blarg blarg2 blarg3]
 
