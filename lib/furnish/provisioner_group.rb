@@ -93,10 +93,6 @@ module Furnish
         startup_args = args
 
         unless args = this_prov.startup(startup_args)
-          if_debug do
-            puts "Could not provision #{this_prov}"
-          end
-
           set_recovery(this_prov, i, startup_args)
           raise "Could not provision #{this_prov}"
         end
