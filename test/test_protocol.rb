@@ -19,8 +19,10 @@ class TestProtocol < Furnish::TestCase
     end
 
     refute(proto[:accepts_from_any])
+    refute(proto.accepts_from_any?)
     proto.accepts_from_any(true)
     assert(proto[:accepts_from_any])
+    assert(proto.accepts_from_any?)
   end
 
   def test_configure

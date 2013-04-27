@@ -140,6 +140,13 @@ module Furnish # :nodoc:
     end
 
     #
+    # Predicate for the value of #accepts_from_any.
+    #
+    def accepts_from_any?
+      !!@hash[:accepts_from_any]
+    end
+
+    #
     # look up a rule set -- generally should not be used by consumers.
     #
     def [](key)
