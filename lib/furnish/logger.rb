@@ -68,6 +68,9 @@ module Furnish
     #
     attr_reader :io
 
+    #
+    # Optional tag. See #with_tag for an example.
+    #
     attr_reader :tag
 
     #
@@ -112,6 +115,10 @@ module Furnish
       end
     end
 
+    #
+    # Makes stdio Furnish::Logger objects for the duration of the block. Used
+    # by #if_debug for the purposes of not breaking expectations.
+    #
     def hijack_stdio
       orig_stdout, orig_stderr = nil, nil
 
@@ -131,6 +138,19 @@ module Furnish
       $stderr = orig_stderr if orig_stderr
     end
 
+    #
+    # Temporarily redirects IO to a new IO object for the duration of the
+    # block. Example below:
+    #
+    #     Furnish.logger.redirect($stdout) do
+    #       Furnish.logger.if_debug do
+    #         puts "herp" # prints to stdout
+    #       end
+    #     end
+    #
+    #     # prints to original logger IO
+    #     Furnish.logger.puts "hi"
+    #
     def redirect(new_io, &block)
       tmp_io = @io
       @io = new_io
@@ -138,6 +158,21 @@ module Furnish
       @io = tmp_io
     end
 
+    #
+    # Prefixes all 'puts' calls with a string of text (a "tag") provided for
+    # the duration of the block.
+    #
+    # Example:
+    #
+    #
+    #     @logger.with_tag("hi") do
+    #       @logger.if_debug do
+    #         puts "hello" # "[hi] hello"
+    #       end
+    #     end
+    #
+    #     @logger.puts "hello" # "hello"
+    #
     def with_tag(new_tag, &block)
       @tag = new_tag
       yield
@@ -147,7 +182,6 @@ module Furnish
     #
     # Hacky puts method to handle tags.
     #
-
     def puts(*args)
       if tag
         io.print("[#{tag}] ")
