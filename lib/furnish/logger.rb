@@ -95,17 +95,40 @@ module Furnish
     # if_debug is synchronized over the logger's mutex.
     #
     def if_debug(level=1, else_block=nil, &block)
-      run = lambda do
-        if debug_level >= level and block
-          io.instance_eval(&block)
-        elsif else_block
-          io.instance_eval(&else_block)
+      hijack_stdio do
+        begin
+          run = lambda do
+            if debug_level >= level and block
+              instance_eval(&block)
+            elsif else_block
+              instance_eval(&else_block)
+            end
+          end
+
+          @write_mutex.synchronize { run.call }
+        rescue ThreadError
+          run.call
         end
       end
+    end
 
-      @write_mutex.synchronize { run.call }
-    rescue ThreadError
-      run.call
+    def hijack_stdio
+      orig_stdout, orig_stderr = nil, nil
+
+      if io != $stdout
+        orig_stdout = $stdout
+        $stdout = self
+      end
+
+      if io != $stderr
+        orig_stderr = $stderr
+        $stderr = self
+      end
+
+      yield
+    ensure
+      $stdout = orig_stdout if orig_stdout
+      $stderr = orig_stderr if orig_stderr
     end
 
     def redirect(new_io, &block)
@@ -115,10 +138,38 @@ module Furnish
       @io = tmp_io
     end
 
-    def with_tag(tag, &block)
-      @tag = tag
+    def with_tag(new_tag, &block)
+      @tag = new_tag
       yield
       @tag = nil
+    end
+
+    #
+    # Hacky puts method to handle tags.
+    #
+
+    def puts(*args)
+      if tag
+        io.print("[#{tag}] ")
+      end
+
+      method_missing(:puts, *args)
+    end
+
+    #
+    # Makes it possible to assign this to $stdout and $stderr.
+    #
+    def write(*args)
+      method_missing(:write, *args)
+    end
+
+    #
+    # Hacky close method that keeps us from closing stdio.
+    #
+    def close
+      # XXX StringIO apparently overrides respond_to_missing for #to_i but
+      #     doesn't implement #to_i
+      io.close if (io.to_i > 2 rescue true)
     end
 
     #
@@ -127,13 +178,7 @@ module Furnish
     #
     def method_missing(sym, *args)
       raise NoMethodError, "#{io.inspect} has no method #{sym}" unless io.respond_to?(sym)
-      run = lambda do
-        if tag and %w[puts print write].include?(sym)
-          io.print("[#{tag}]")
-        end
-
-        io.__send__(sym, *args)
-      end
+      run = lambda { io.__send__(sym, *args) }
       @write_mutex.synchronize { run.call }
     rescue ThreadError
       run.call

@@ -1,5 +1,6 @@
 require 'helper'
 require 'tempfile'
+require 'stringio'
 
 class TestLogger < Furnish::TestCase
   def setup
@@ -58,6 +59,38 @@ class TestLogger < Furnish::TestCase
     end
 
     assert_equal("foo\nquux\nlevel2\n", read_logfile, "debug level is 2 and if_debug checking for 1")
+  end
+
+  def test_redirect
+    @logger.debug_level = 3
+    io = StringIO.new('', 'w')
+    @logger.redirect(io) do
+      @logger.if_debug do
+        puts "herp"
+      end
+    end
+
+    @logger.if_debug do
+      puts "derp"
+    end
+
+    assert_equal("derp\n", read_logfile)
+    assert_equal("herp\n", io.string)
+  end
+
+  def test_with_tag
+    @logger.debug_level = 3
+    @logger.with_tag("fart") do
+      @logger.if_debug do
+        puts "hello"
+      end
+    end
+
+    @logger.if_debug do
+      puts "hello"
+    end
+
+    assert_equal("[fart] hello\nhello\n", read_logfile)
   end
 
   def teardown
