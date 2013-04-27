@@ -47,6 +47,12 @@ module Furnish
     module Mixins
       # :method: if_debug
       # Delegates to Furnish::Logger#if_debug.
+      
+      # :method: redirect
+      # Delegates to Furnish::Logger#redirect.
+      
+      # :method: with_tag
+      # Delegates to Furnish::Logger#with_tag.
 
       %w[if_debug redirect with_tag].each do |meth|
         module_eval <<-EOF
