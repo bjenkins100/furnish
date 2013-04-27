@@ -90,6 +90,15 @@ module Furnish
 
         yield
       end
+
+      #
+      # Test the mixin functionality
+      #
+      def make_log
+        if_debug do
+          puts "hello from Dummy"
+        end
+      end
     end
   end
 end

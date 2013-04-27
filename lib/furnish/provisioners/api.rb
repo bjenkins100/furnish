@@ -1,5 +1,6 @@
 require 'furnish/provisioner'
 require 'furnish/protocol'
+require 'furnish/logger'
 
 module Furnish # :nodoc:
   module Provisioner # :nodoc:
@@ -55,6 +56,8 @@ module Furnish # :nodoc:
     # written.
     #
     class API
+
+      include Furnish::Logger::Mixins
 
       #
       # Ensures all properties are inherited by subclasses that inherit from API.

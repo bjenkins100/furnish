@@ -93,6 +93,19 @@ class TestLogger < Furnish::TestCase
     assert_equal("[fart] hello\nhello\n", read_logfile)
   end
 
+  def test_api_has_logger
+    old_logger = Furnish.logger
+    io = StringIO.new('', 'w')
+    Furnish.logger = Furnish::Logger.new(io, 3)
+
+    d = Furnish::Provisioner::Dummy.new
+    d.make_log
+
+    assert_equal("hello from Dummy\n", io.string)
+  ensure
+    Furnish.logger = old_logger
+  end
+
   def teardown
     @logger.close
     @logger_file.unlink
