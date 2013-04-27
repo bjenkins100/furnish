@@ -21,12 +21,12 @@ class TestAPI < Furnish::TestCase
     assert_respond_to(@klass, :furnish_property)
 
     assert_kind_of(Hash, @klass.furnish_properties)
-    assert_includes(@klass.furnish_properties, :foo)
-    assert_includes(@klass.furnish_properties, :a_string)
-    refute_includes(@klass.furnish_properties, :bar)
-    assert_kind_of(Hash, @klass.furnish_properties[:foo])
-    assert_equal("does things with foo", @klass.furnish_properties[:foo][:description])
-    assert_equal(Integer, @klass.furnish_properties[:foo][:type])
+    assert_includes(@klass.furnish_properties, "foo")
+    assert_includes(@klass.furnish_properties, "a_string")
+    refute_includes(@klass.furnish_properties, "bar")
+    assert_kind_of(Hash, @klass.furnish_properties["foo"])
+    assert_equal("does things with foo", @klass.furnish_properties["foo"][:description])
+    assert_equal(Integer, @klass.furnish_properties["foo"][:type])
 
     obj = @klass.new(:foo => 1)
 

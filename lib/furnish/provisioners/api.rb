@@ -129,7 +129,7 @@ module Furnish # :nodoc:
       #         { :description => "does a foo", :type => Integer }
       #
       def self.furnish_property(name, description="", type=Object)
-        name = name.to_sym unless name.kind_of?(Symbol)
+        name = name.to_s unless name.kind_of?(String)
 
         attr_accessor name
 
@@ -281,6 +281,7 @@ module Furnish # :nodoc:
         end
 
         args.each do |k, v|
+          k = k.to_s unless k.kind_of?(String)
           props = self.class.furnish_properties
 
           if props.has_key?(k)
