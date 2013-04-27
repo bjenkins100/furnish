@@ -1,3 +1,15 @@
+# 0.1.2 (04/27/2013)
+  * Logger changes:
+    * Fixed: Certain situations with if_debug and the IO proxy would result in
+      surprising behavior with stdio.
+    * with_tag is a new call to prefix log messages in a block with a tag.
+    * redirect is a new call to temporarily redirect I/O in the logger.
+    * Furnish::Provisioners::API now includes the logger mixin by default.
+  * Provisioner properties now use strings instead of symbols -- resolves a
+    potential memory exhaustion issue.
+  * Failed provisions no longer log the failure twice.
+  * Furnish::Protocol#accepts_from_any? is a predicate to reflect the value as
+    true or false.
 # 0.1.1 (04/16/2013)
   * #wait_for would spin forever if something got flagged as needing recovery
     (threaded scheduler only). Now raises the first item's exception if
