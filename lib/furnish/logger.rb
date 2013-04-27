@@ -45,11 +45,15 @@ module Furnish
     # with the standard logger object set as Furnish.logger.
     #
     module Mixins
-      #
+      # :method: if_debug
       # Delegates to Furnish::Logger#if_debug.
-      #
-      def if_debug(*args, &block)
-        Furnish.logger.if_debug(*args, &block)
+
+      %w[if_debug redirect with_tag].each do |meth|
+        module_eval <<-EOF
+          def #{meth}(*args, &block)
+            Furnish.logger.#{meth}(*args, &block)
+          end
+        EOF
       end
     end
 
@@ -62,7 +66,9 @@ module Furnish
     # The IO object. Probably best to not mess with this attribute directly,
     # most methods will be proxied to it.
     #
-    attr_reader   :io
+    attr_reader :io
+
+    attr_reader :tag
 
     #
     # Create a new Furnish::Logger. Takes an IO object and an Integer debug
@@ -102,13 +108,32 @@ module Furnish
       run.call
     end
 
+    def redirect(new_io, &block)
+      tmp_io = @io
+      @io = new_io
+      yield
+      @io = tmp_io
+    end
+
+    def with_tag(tag, &block)
+      @tag = tag
+      yield
+      @tag = nil
+    end
+
     #
     # Delegates to the Furnish::Logger#io if possible. If not possible, raises
     # a NoMethodError. All calls are synchronized over the logger's mutex.
     #
     def method_missing(sym, *args)
       raise NoMethodError, "#{io.inspect} has no method #{sym}" unless io.respond_to?(sym)
-      run = lambda { io.__send__(sym, *args) }
+      run = lambda do
+        if tag and %w[puts print write].include?(sym)
+          io.print("[#{tag}]")
+        end
+
+        io.__send__(sym, *args)
+      end
       @write_mutex.synchronize { run.call }
     rescue ThreadError
       run.call
