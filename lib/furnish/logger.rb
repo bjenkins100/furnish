@@ -47,10 +47,10 @@ module Furnish
     module Mixins
       # :method: if_debug
       # Delegates to Furnish::Logger#if_debug.
-      
+
       # :method: redirect
       # Delegates to Furnish::Logger#redirect.
-      
+
       # :method: with_tag
       # Delegates to Furnish::Logger#with_tag.
 
@@ -209,7 +209,7 @@ module Furnish
     def close
       # XXX StringIO apparently overrides respond_to_missing for #to_i but
       #     doesn't implement #to_i
-      io.close if (io.to_i > 2 rescue true)
+      io.close unless io == $stdout or io == $stderr
     end
 
     #
