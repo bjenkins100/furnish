@@ -302,6 +302,8 @@ module Furnish # :nodoc:
       # the name of the group (such as allocating Palsy objects), but can't be
       # done in #initialize because the group name isn't known yet.
       #
+      # Note that #furnish_group_name will be set by the time this hook is run.
+      #
       def added_to_group
       end
 
