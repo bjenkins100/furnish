@@ -1,4 +1,6 @@
 require 'helper'
+require 'dummy_classes'
+require 'furnish/provisioners/dummy_vm'
 
 # NOTE the dummy classes in this file are defined in test/dummy_classes.rb
 class TestProvisionerGroup < Furnish::TestCase
@@ -205,5 +207,19 @@ class TestProvisionerGroup < Furnish::TestCase
       assert_equal({ :shutdown => true }, pg.first.run_state[:shutdown])
       assert(pg.last.run_state[:shutdown])
     end
+  end
+
+  def test_vms
+    vm1 = Furnish::Provisioner::DummyVM.new
+    vm2 = Furnish::Provisioner::DummyVM.new
+
+    pg1 = Furnish::ProvisionerGroup.new([vm1], 'test1')
+    pg2 = Furnish::ProvisionerGroup.new([vm2], 'test2')
+
+    pg1.first.add_vm('test', {})
+    pg2.first.add_vm('test2', {})
+
+    assert_equal([['test']], pg1.vms.values)
+    assert_equal([['test2']], pg2.vms.values)
   end
 end

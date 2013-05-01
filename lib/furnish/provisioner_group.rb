@@ -247,6 +247,18 @@ module Furnish
       return result # scheduler will take it from here
     end
 
+    def vms
+      h = { }
+
+      each do |prov|
+        if prov.respond_to?(:list_vms)
+          h[prov] = prov.list_vms
+        end
+      end
+
+      return h
+    end
+
     protected
 
     #
