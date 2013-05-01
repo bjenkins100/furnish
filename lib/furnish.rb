@@ -17,6 +17,14 @@ module Furnish
   #
   def self.init(database_file)
     Palsy.change_db(database_file)
+    @initialized = true
+  end
+
+  #
+  # Has furnish been initialized?
+  #
+  def self.initialized?
+    @initialized
   end
 
   #

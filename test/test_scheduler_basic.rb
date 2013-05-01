@@ -2,6 +2,12 @@ require 'helper'
 require 'dummy_classes'
 
 class TestSchedulerBasic < Furnish::SchedulerTestCase
+  def test_initialized
+    Furnish::Scheduler.new # should not raise
+    Furnish.instance_variable_set(:@initialized, false)
+    assert_raises(RuntimeError) { Furnish::Scheduler.new }
+  end
+
   def test_schedule_provision
     assert(sched.schedule_provision('blarg', [Dummy.new]), 'we can schedule')
     assert_includes(sched.vm.waiters.keys, 'blarg', 'exists in the waiters')

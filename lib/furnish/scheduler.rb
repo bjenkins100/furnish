@@ -46,6 +46,9 @@ module Furnish
     # Instantiate the Scheduler.
     #
     def initialize
+
+      raise "Cannot start; Furnish has not been initialized" unless Furnish.initialized?
+
       @force_deprovision  = false
       @solved_mutex       = Mutex.new
       @serial             = false
