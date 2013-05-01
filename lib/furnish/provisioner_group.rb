@@ -67,6 +67,7 @@ module Furnish
       @dependencies = dependencies.kind_of?(Set) ? dependencies : Set[*dependencies]
 
       assert_provisioner_protocol(provisioners)
+      run_add_hook(provisioners)
 
       super(provisioners)
     end
@@ -251,7 +252,6 @@ module Furnish
     #
     # Similar to #clean_state, a helper for recovery tracking
     #
-
     def set_recovery(prov, index, args=nil)
       @group_state['provisioner'] = prov
       @group_state['index'] = index
@@ -298,6 +298,13 @@ module Furnish
         end
       end
       return result
+    end
+
+    #
+    # Runs the Furnish::Provisioner::API#added_to_group hook for each provisioner
+    #
+    def run_add_hook(provisioner)
+      provisioner.added_to_group if provisioner.respond_to?(:added_to_group)
     end
 
     #

@@ -297,6 +297,15 @@ module Furnish # :nodoc:
       end
 
       #
+      # This is run when the provisioner is added to a
+      # Furnish::ProvisionerGroup. This is for doing things that would require
+      # the name of the group (such as allocating Palsy objects), but can't be
+      # done in #initialize because the group name isn't known yet.
+      #
+      def added_to_group
+      end
+
+      #
       # Called by Furnish::ProvisionerGroup#startup which is itself called by
       # Furnish::Scheduler#startup. Indicates the resource this provisioner
       # manages is to be created.
