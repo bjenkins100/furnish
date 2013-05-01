@@ -1,4 +1,5 @@
 require 'helper'
+require 'mt_cases'
 
 class TestSchedulerSerial < Furnish::RestartingSchedulerTestCase
   def setup

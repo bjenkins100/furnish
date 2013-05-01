@@ -1,4 +1,5 @@
 require 'helper'
+require 'dummy_classes'
 
 class TestSchedulerBasic < Furnish::SchedulerTestCase
   def test_schedule_provision

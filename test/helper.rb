@@ -10,6 +10,6 @@ end
 require 'minitest/unit'
 require 'tempfile'
 require 'furnish'
-require 'mt_cases'
+require 'furnish/test'
 
 require 'minitest/autorun'
