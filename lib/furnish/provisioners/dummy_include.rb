@@ -1,5 +1,5 @@
 module Furnish # :nodoc:
-  module Provisioners # :nodoc:
+  module Provisioner # :nodoc:
     module DummyInclude # :nodoc:
       #--
       # Some dancing around the marshal issues with this provisioner. Note that

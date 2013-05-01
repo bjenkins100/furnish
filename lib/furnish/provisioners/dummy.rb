@@ -11,7 +11,7 @@ module Furnish
     # code.
     #
     class Dummy < API
-      include Furnish::Provisioners::DummyInclude
+      include Furnish::Provisioner::DummyInclude
     end
   end
 end
