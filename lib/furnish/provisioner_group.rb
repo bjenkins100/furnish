@@ -247,6 +247,10 @@ module Furnish
       return result # scheduler will take it from here
     end
 
+    #
+    # Get a list of vms from provisioners that provide VMs via the ..
+    # Furnish::Provisioner::VM interface.
+    #
     def vms
       h = { }
 
