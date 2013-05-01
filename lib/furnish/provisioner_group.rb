@@ -303,8 +303,10 @@ module Furnish
     #
     # Runs the Furnish::Provisioner::API#added_to_group hook for each provisioner
     #
-    def run_add_hook(provisioner)
-      provisioner.added_to_group if provisioner.respond_to?(:added_to_group)
+    def run_add_hook(provisioners)
+      provisioners.each do |prov|
+        prov.added_to_group if prov.respond_to?(:added_to_group)
+      end
     end
 
     #
