@@ -438,7 +438,7 @@ module Furnish # :nodoc:
               y
           end +
           [self.class]
-        )
+        ).bytes.inject(0) { |x,y| x += y.ord }
       end
     end
   end
