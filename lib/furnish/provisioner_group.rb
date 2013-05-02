@@ -155,7 +155,7 @@ module Furnish
         end
 
         unless args.kind_of?(Hash) or force
-          set_recovery(this_prov, i, startup_args)
+          set_recovery(this_prov, i, shutdown_args)
           raise ArgumentError,
             "#{this_prov.class} does not return data that can be consumed by the next provisioner"
         end
