@@ -347,7 +347,7 @@ module Furnish
       yielders = [iterator.shift.class]
 
       while accepting = iterator.shift
-        accepting = accepting.class # meh
+        accepting = accepting.class
 
         unless yielders.all? { |y| y.respond_to?(protocol_method) }
           raise ArgumentError, "yielding classes do not implement protocol #{protocol_method} -- cannot continue"
