@@ -195,7 +195,7 @@ module Furnish # :nodoc:
         return self[:accepts_from_any]
       end
 
-      return (yp.keys & ap.keys).all? { |k| ap[k][:type].ancestors.include?(yp[k][:type]) }
+      return (yp.keys & ap.keys).any? { |k| ap[k][:type].ancestors.include?(yp[k][:type]) }
     end
 
     VALIDATOR_NAMES.each do |vname|

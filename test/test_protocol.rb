@@ -209,5 +209,13 @@ class TestProtocol < Furnish::TestCase
     proto2.accepts(:bar, "bar", Integer)
 
     refute(proto2.accepts_from(proto1), "nothing accepted is yielded")
+
+    proto1 = Furnish::Protocol.new
+    proto2 = Furnish::Protocol.new
+    proto1.yields(:foo, "foo", String)
+    proto1.accepts(:bar, "bar", String)
+    proto1.accepts(:foo, "foo", String)
+
+    assert(proto2.accepts_from(proto1), "only one of the types is matched")
   end
 end
