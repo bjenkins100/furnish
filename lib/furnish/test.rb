@@ -3,6 +3,43 @@ require 'tempfile'
 require 'furnish'
 
 module Furnish
+  class SchedulerRunner < MiniTest::Unit
+    attr_accessor :keep_scheduler
+
+    def _run_suite(suite, type)
+      begin
+        if keep_scheduler
+          require 'fileutils'
+          Furnish.init('test.db') unless Furnish.initialized?
+
+          if ENV["FURNISH_DEBUG"]
+            Furnish.logger = Furnish::Logger.new($stderr, 3)
+          end
+
+          $sched ||= Furnish::Scheduler.new
+          $sched.run
+          at_exit do
+            if Furnish.initialized?
+              $sched.teardown
+              Furnish.shutdown
+              FileUtils.rm_f('test.db')
+            end
+          end
+        end
+
+        if !suite.test_methods.empty? and suite.respond_to?(:before_suite)
+          suite.before_suite
+        end
+
+        super(suite, type)
+      ensure
+        if !suite.test_methods.empty? and suite.respond_to?(:after_suite)
+          suite.after_suite
+        end
+      end
+    end
+  end
+
   #
   # Furnish::TestCase is a test harness for testing things with furnish, like
   # provisioner libraries. It is intended to be consumed by other libraries.
@@ -20,7 +57,7 @@ module Furnish
   #
   class TestCase < MiniTest::Unit::TestCase
     def setup # :nodoc:
-      unless Furnish.initialized?
+      unless Furnish.initialized? or (MiniTest::Unit.runner.keep_scheduler rescue nil)
         @tempfiles ||= []
         file = Tempfile.new('furnish_db')
         @tempfiles.push(file)
@@ -33,16 +70,14 @@ module Furnish
         end
         Furnish.init(file.path)
       end
-
-      return file
     end
 
-    def teardown(shutdown=true) # :nodoc:
+    def teardown # :nodoc:
       unless ENV["FURNISH_DEBUG"]
         Furnish.logger.close
       end
 
-      if shutdown
+      if !(MiniTest::Unit.runner.keep_scheduler rescue nil)
         Furnish.shutdown
         @tempfiles.each do |file|
           file.unlink
@@ -68,14 +103,17 @@ module Furnish
 
     def setup # :nodoc:
       super
+      if $sched
+        @sched = $sched
+      end
       @sched ||= Furnish::Scheduler.new
       @monitor = Thread.new { loop { @sched.running?; sleep 1 } }
       @monitor.abort_on_exception = true
     end
 
-    def teardown(shutdown=true) # :nodoc:
+    def teardown # :nodoc:
       @monitor.kill rescue nil
-      super(shutdown)
+      super
     end
 
     ##
