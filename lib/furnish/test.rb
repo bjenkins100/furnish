@@ -20,28 +20,33 @@ module Furnish
   #
   class TestCase < MiniTest::Unit::TestCase
     def setup # :nodoc:
-      @tempfiles ||= []
-      file = Tempfile.new('furnish_db')
-      @tempfiles.push(file)
-      if ENV["FURNISH_DEBUG"]
-        Furnish.logger = Furnish::Logger.new($stderr, 3)
-      else
-        logfile = Tempfile.new('furnish_log')
-        @tempfiles.push(logfile)
-        Furnish.logger = Furnish::Logger.new(logfile, 3)
+      unless Furnish.initialized?
+        @tempfiles ||= []
+        file = Tempfile.new('furnish_db')
+        @tempfiles.push(file)
+        if ENV["FURNISH_DEBUG"]
+          Furnish.logger = Furnish::Logger.new($stderr, 3)
+        else
+          logfile = Tempfile.new('furnish_log')
+          @tempfiles.push(logfile)
+          Furnish.logger = Furnish::Logger.new(logfile, 3)
+        end
+        Furnish.init(file.path)
       end
-      Furnish.init(file.path)
+
       return file
     end
 
-    def teardown # :nodoc:
+    def teardown(shutdown=true) # :nodoc:
       unless ENV["FURNISH_DEBUG"]
         Furnish.logger.close
       end
 
-      Furnish.shutdown
-      @tempfiles.each do |file|
-        file.unlink
+      if shutdown
+        Furnish.shutdown
+        @tempfiles.each do |file|
+          file.unlink
+        end
       end
     end
   end
@@ -63,14 +68,14 @@ module Furnish
 
     def setup # :nodoc:
       super
-      @sched = Furnish::Scheduler.new
+      @sched ||= Furnish::Scheduler.new
       @monitor = Thread.new { loop { @sched.running?; sleep 1 } }
       @monitor.abort_on_exception = true
     end
 
-    def teardown # :nodoc:
+    def teardown(shutdown=true) # :nodoc:
       @monitor.kill rescue nil
-      super
+      super(shutdown)
     end
 
     ##
