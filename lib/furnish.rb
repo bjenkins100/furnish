@@ -52,6 +52,7 @@ module Furnish
   # have a bad day.
   #
   def self.shutdown
+    @initialized = false
     Palsy.instance.close
   end
 end
