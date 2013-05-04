@@ -313,7 +313,11 @@ module Furnish
     # halt the deprovisioning process.
     #
     def teardown_group(group_name, wait=true)
-      wait_for(group_name) if wait
+      begin
+        wait_for(group_name) if wait
+      rescue => e
+        raise e unless force_deprovision
+      end
 
       dependent_items = vm.dependencies.partition { |k,v| v.include?(group_name) }.first.map(&:first)
 

@@ -361,6 +361,27 @@ module Furnish
       sched.force_deprovision = true
       sched.teardown
       refute_includes(sched.vm.solved, "blarg")
+
+      dummy = StartFailDummy.new
+      assert(sched.schedule_provision('blarg', StartFailDummy.new))
+
+      assert_raises(RuntimeError) do
+        sched.run
+
+        unless sched.serial
+          sched.wait_for('blarg')
+        end
+      end
+
+      sched.force_deprovision = false
+      refute_includes(sched.vm.solved, "blarg")
+      unless sched.serial
+        assert_raises(RuntimeError) do
+          sched.down("blarg")
+        end
+      end
+      sched.force_deprovision = true
+      sched.down("blarg")
     end
   end
 end
