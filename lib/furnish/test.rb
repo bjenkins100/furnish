@@ -18,9 +18,11 @@ module Furnish
 
           $sched ||= Furnish::Scheduler.new
           $sched.run
+
           at_exit do
             # XXX this at_exit actually gets installed for each suite... ugh
             if Furnish.initialized?
+              $sched.force_deprovision = true
               $sched.teardown
               Furnish.shutdown
               FileUtils.rm_f('test.db')
