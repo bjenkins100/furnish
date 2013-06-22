@@ -1,9 +1,10 @@
-require 'minitest/unit'
+require 'minitest'
+require 'minitest/test'
 require 'tempfile'
 require 'furnish'
 
 module Furnish
-  class SchedulerRunner < MiniTest::Unit
+  class SchedulerRunner < Minitest::Unit
     attr_accessor :keep_scheduler
 
     def _run_suite(suite, type)
@@ -58,9 +59,9 @@ module Furnish
   # log will be presented to the standard error. Otherwise, it is sent a log
   # file.
   #
-  class Test < MiniTest::Test
+  class Test < Minitest::Test
     def setup # :nodoc:
-      unless Furnish.initialized? or (MiniTest::Unit.runner.keep_scheduler rescue nil)
+      unless Furnish.initialized? or (Minitest::Unit.runner.keep_scheduler rescue nil)
         @tempfiles ||= []
         file = Tempfile.new('furnish_db')
         @tempfiles.push(file)
@@ -80,7 +81,7 @@ module Furnish
         Furnish.logger.close
       end
 
-      if !(MiniTest::Unit.runner.keep_scheduler rescue nil)
+      if !(Minitest::Unit.runner.keep_scheduler rescue nil)
         Furnish.shutdown
         @tempfiles.each do |file|
           file.unlink

@@ -7,7 +7,6 @@ if ENV["COVERAGE"]
   end
 end
 
-require 'minitest/unit'
 require 'tempfile'
 require 'furnish'
 require 'furnish/test'
