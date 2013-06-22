@@ -3,7 +3,7 @@ require 'dummy_classes'
 require 'furnish/provisioners/dummy_vm'
 
 # NOTE the dummy classes in this file are defined in test/dummy_classes.rb
-class TestProvisionerGroup < Furnish::TestCase
+class TestProvisionerGroup < Furnish::Test
   def test_constructor
     dummy = Dummy.new
     pg = Furnish::ProvisionerGroup.new(dummy, 'blarg')

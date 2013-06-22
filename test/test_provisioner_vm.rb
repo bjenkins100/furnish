@@ -3,7 +3,7 @@ require 'furnish/provisioners/dummy_vm'
 
 DummyVM = Furnish::Provisioner::DummyVM
 
-class TestProvisionerVM < Furnish::TestCase
+class TestProvisionerVM < Furnish::Test
   def test_definition
     assert_kind_of(Furnish::Provisioner::API, DummyVM.new)
     assert_kind_of(Furnish::Provisioner::VM, DummyVM.new)

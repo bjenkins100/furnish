@@ -1,7 +1,7 @@
 require 'helper'
 require 'dummy_classes'
 
-class TestSchedulerBasic < Furnish::SchedulerTestCase
+class TestSchedulerBasic < Furnish::SchedulerTest
   def test_initialized
     Furnish::Scheduler.new # should not raise
     Furnish.instance_variable_set(:@initialized, false)

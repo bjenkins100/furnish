@@ -2,7 +2,7 @@ require 'helper'
 require 'tempfile'
 require 'stringio'
 
-class TestLogger < Furnish::TestCase
+class TestLogger < Furnish::Test
   def setup
     super
     @logger_file = Tempfile.new('furnish_log')

@@ -11,7 +11,7 @@
 
 require 'helper'
 
-class TestDummy < Furnish::TestCase
+class TestDummy < Furnish::Test
   def test_defaults
     dummy = Dummy.new
     dummy.furnish_group_name = 'dummy_test'

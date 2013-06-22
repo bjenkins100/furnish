@@ -1,6 +1,6 @@
 require 'helper'
 
-class TestVM < Furnish::TestCase
+class TestVM < Furnish::Test
   def test_initialize
     vm = Furnish::VM.new
     kinds = {
