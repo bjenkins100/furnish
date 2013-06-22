@@ -1,6 +1,6 @@
 require 'helper'
 
-class TestAPI < Furnish::TestCase
+class TestAPI < Furnish::Test
   def setup
     super
     # NOTE this class is defined in test/dummy_classes.rb

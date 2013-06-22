@@ -2,7 +2,7 @@ require 'helper'
 require 'mt_cases'
 
 # NOTE the dummy classes in this file are defined in test/dummy_classes.rb
-class TestSchedulerThreaded < Furnish::RestartingSchedulerTestCase
+class TestSchedulerThreaded < Furnish::RestartingSchedulerTest
   def setup
     super
     sched.serial = false

@@ -58,7 +58,7 @@ module Furnish
   # log will be presented to the standard error. Otherwise, it is sent a log
   # file.
   #
-  class TestCase < MiniTest::Unit::TestCase
+  class Test < MiniTest::Test
     def setup # :nodoc:
       unless Furnish.initialized? or (MiniTest::Unit.runner.keep_scheduler rescue nil)
         @tempfiles ||= []
@@ -99,7 +99,7 @@ module Furnish
   #
   # RunningSchedulerTestCase deals with managing a running scheduler for you.
   #
-  class SchedulerTestCase < TestCase
+  class SchedulerTest < Test
     ##
     # Furnish::Scheduler object.
     attr_reader :sched
@@ -141,7 +141,7 @@ module Furnish
   # Inherits from SchedulerTestCase and manages a running scheduler in
   # conjunction with all the other features.
   #
-  class RunningSchedulerTestCase < SchedulerTestCase
+  class RunningSchedulerTest < SchedulerTest
     def setup # :nodoc:
       super
       @sched.run

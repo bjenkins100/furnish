@@ -3,7 +3,7 @@ require 'furnish/test'
 
 module Furnish
   # These tests are run for both threaded and serial cases.
-  class RestartingSchedulerTestCase < SchedulerTestCase
+  class RestartingSchedulerTest < SchedulerTest
     def teardown
       sched.stop
       super

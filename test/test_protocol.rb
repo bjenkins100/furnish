@@ -1,6 +1,6 @@
 require 'helper'
 
-class TestProtocol < Furnish::TestCase
+class TestProtocol < Furnish::Test
   #--
   # see the Furnish::Protocol docs for truth tables and whatnot
   #++
