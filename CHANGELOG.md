@@ -1,3 +1,8 @@
+# 0.1.3 (07/06/2013)
+  * Furnish::Provisioner::VM is a new subclass of API (and therefore should be
+    subclassed), specifically geared to add new functionality for machine
+    provisioners.
+  * Furnish::TestCase is now Furnish::Test and is Minitest 5 based.
 # 0.1.2 (04/27/2013)
   * Logger changes:
     * Fixed: Certain situations with if_debug and the IO proxy would result in
