@@ -1,10 +1,19 @@
+#
+# Monkey Patches for Minitest for Furnish::Test
+#
 module Minitest
   class << self
+    #
+    # If this is set, the scheduler will be kept running between test methods,
+    # so that it can be re-used. This can be used to save some time in
+    # situaitons where a long-running provision will be used in all methods in
+    # a suite.
+    #
     attr_accessor :keep_scheduler
 
     remove_method :__run
 
-    def __run(reporter, options)
+    def __run(reporter, options) # :nodoc:
       at_exit do
         if Furnish.initialized?
           $sched.force_deprovision = true
