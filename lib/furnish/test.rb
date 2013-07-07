@@ -4,45 +4,6 @@ require 'tempfile'
 require 'furnish'
 
 module Furnish
-  class SchedulerRunner < Minitest::Unit
-    attr_accessor :keep_scheduler
-
-    def _run_suite(suite, type)
-      begin
-        if keep_scheduler
-          require 'fileutils'
-          Furnish.init('test.db') unless Furnish.initialized?
-
-          if ENV["FURNISH_DEBUG"]
-            Furnish.logger = Furnish::Logger.new($stderr, 3)
-          end
-
-          $sched ||= Furnish::Scheduler.new
-          $sched.run
-
-          at_exit do
-            # XXX this at_exit actually gets installed for each suite... ugh
-            if Furnish.initialized?
-              $sched.force_deprovision = true
-              $sched.teardown
-              Furnish.shutdown
-              FileUtils.rm_f('test.db')
-            end
-          end
-        end
-
-        if !suite.test_methods.empty? and suite.respond_to?(:before_suite)
-          suite.before_suite
-        end
-
-        super(suite, type)
-      ensure
-        if !suite.test_methods.empty? and suite.respond_to?(:after_suite)
-          suite.after_suite
-        end
-      end
-    end
-  end
 
   #
   # Furnish::TestCase is a test harness for testing things with furnish, like
@@ -61,7 +22,7 @@ module Furnish
   #
   class Test < Minitest::Test
     def setup # :nodoc:
-      unless Furnish.initialized? or (Minitest::Unit.runner.keep_scheduler rescue nil)
+      unless Furnish.initialized? or (Minitest.respond_to?(:keep_scheduler) and Minitest.keep_scheduler rescue nil)
         @tempfiles ||= []
         file = Tempfile.new('furnish_db')
         @tempfiles.push(file)
@@ -81,7 +42,7 @@ module Furnish
         Furnish.logger.close
       end
 
-      if !(Minitest::Unit.runner.keep_scheduler rescue nil)
+      if Furnish.initialized? and !(Minitest.respond_to?(:keep_scheduler) and Minitest.keep_scheduler rescue nil)
         Furnish.shutdown
         @tempfiles.each do |file|
           file.unlink
